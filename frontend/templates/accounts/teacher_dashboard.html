@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Личный кабинет преподавателя</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .profile-info { background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .logout { 
+            background: #dc3545; 
+            color: white; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 16px;
+        }
+        .logout:hover { 
+            background: #c82333; 
+            text-decoration: none;
+            color: white;
+        }
+        .welcome { color: #28a745; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h2 class="welcome">Добро пожаловать в личный кабинет преподавателя!</h2>
+    
+    <div class="profile-info">
+        <h3>Ваши данные:</h3>
+        <p><strong>ФИО:</strong> {{ user.last_name }} {{ user.first_name }} 
+           {% if user.teacherprofile.patronymic %}{{ user.teacherprofile.patronymic }}{% endif %}</p>
+    </div>
+    
+    <!-- Используем метод POST для выхода (более безопасно) -->
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout">Выйти из системы</button>
+    </form>
+</body>
+</html>
