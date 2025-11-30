@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель преподавателя - {{ user.last_name }} {{ user.first_name }}</title>
+    <title>Панель преподавателя - Образовательная платформа</title>
+    
+    <!-- Загрузка статических файлов Django -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
@@ -12,22 +14,23 @@
         <nav class="navbar">
             <div class="profile-section">
                 <div class="profile-pic-container">
-                    <img src="https://via.placeholder.com/150" alt="Фото преподавателя" class="profile-pic" id="profilePic">
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Фото преподавателя" class="profile-pic" id="profilePic">
                     <input type="file" id="profilePicInput" class="profile-pic-input" accept="image/*">
                 </div>
                 <div class="profile-name" id="profileName">
-                    {{ user.last_name }} {{ user.first_name }}
-                    {% if user.teacherprofile.patronymic %}{{ user.teacherprofile.patronymic }}{% endif %}
+                    Добро пожаловать, {{ user.first_name }} {{ user.last_name }}!
                 </div>
             </div>
             
             <div class="nav-buttons" id="navButtons">
                 <a href="#homeworks" class="nav-btn">Домашнее задание</a>
                 <a href="#home" class="nav-btn">Домой</a>
-                <!-- Кнопка выхода -->
+                <!-- Форма выхода -->
                 <form method="post" action="{% url 'logout' %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="nav-btn" style="background: var(--beige-dark);">Выйти</button>
+                    <button type="submit" class="nav-btn" style="background: #dc3545; border: none; color: white; cursor: pointer;">
+                        Выйти
+                    </button>
                 </form>
             </div>
             
@@ -40,12 +43,39 @@
     </header>
 
     <main>
-        <!-- Приветственная секция -->
-        <section class="welcome-section" style="background: linear-gradient(135deg, var(--olive-dark) 0%, var(--muted-green) 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
-            <h2>Добро пожаловать в личный кабинет преподавателя!</h2>
-            <p style="margin-top: 10px; opacity: 0.9;">{{ user.last_name }} {{ user.first_name }}{% if user.teacherprofile.patronymic %} {{ user.teacherprofile.patronymic }}{% endif %}</p>
+        <!-- Секция приветствия и информации о пользователе -->
+        <section class="profile-info" style="background: var(--form-bg); padding: 20px; border-radius: 12px; margin: 20px auto; max-width: 1200px;">
+            <h2 class="welcome" style="color: var(--olive-dark); margin-bottom: 15px;">
+                Добро пожаловать в личный кабинет преподавателя!
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div>
+                    <h3 style="color: var(--brown-dark); margin-bottom: 10px;">Ваши данные:</h3>
+                    <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+                    <p><strong>ФИО:</strong> 
+                        {% if user.first_name or user.last_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            Не указано
+                        {% endif %}
+                    </p>
+                    <p><strong>Email:</strong> 
+                        {% if user.email %}
+                            {{ user.email }}
+                        {% else %}
+                            Не указан
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: var(--brown-dark); margin-bottom: 10px;">Статистика:</h3>
+                    <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+                    <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i" }}</p>
+                </div>
+            </div>
         </section>
 
+        <!-- Секция курсов -->
         <section id="home" class="section">
             <h2 class="my-course">Мои курсы</h2>
             <div class="course-buttons">
@@ -55,29 +85,44 @@
             </div>
 
             <section class="course-panel" id="coursePanel">
-                <div id="panelMessage">Удачного рабочего дня, <span id="userName">{{ user.first_name }}</span>!</div>
-                    
+                <div id="panelMessage">
+                    Удачного рабочего дня, 
+                    <span id="userName">
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </span>!
+                </div>
+                
                 <!-- Стрелки навигации -->
                 <button class="nav-arrow left" id="prevArrow">‹</button>
                 <button class="nav-arrow right" id="nextArrow">›</button>
                 
                 <div class="courses-container" id="coursesContainer">
-                    <!-- Блоки курсов будут добавляться динамически -->
-                    {% for course in courses %}
+                    <!-- Пример курсов - в реальном приложении здесь будет цикл Django -->
                     <div class="course-card">
-                        <div class="course-header">{{ course.title }}</div>
+                        <div class="course-header">Введение в программирование</div>
                         <div class="course-details">
-                            <div class="course-detail">Студентов: {{ course.student_count }}</div>
-                            <div class="course-detail">Заданий: {{ course.assignment_count }}</div>
-                            <div class="course-detail">Статус: {{ course.get_status_display }}</div>
+                            <div class="course-detail">📅 Начало: 01.09.2024</div>
+                            <div class="course-detail">👥 Студентов: 25</div>
+                            <div class="course-detail">📝 Заданий: 8</div>
                         </div>
-                        <div class="course-notifications">{{ course.pending_submissions }}</div>
+                        <div class="course-notifications">3</div>
                     </div>
-                    {% empty %}
-                    <div class="no-courses" style="text-align: center; padding: 40px; color: var(--brown-dark);">
-                        У вас пока нет курсов. <a href="{% url 'create_course' %}" style="color: var(--olive-dark);">Создать первый курс</a>
+                    
+                    <div class="course-card">
+                        <div class="course-header">Веб-разработка</div>
+                        <div class="course-details">
+                            <div class="course-detail">📅 Начало: 15.09.2024</div>
+                            <div class="course-detail">👥 Студентов: 18</div>
+                            <div class="course-detail">📝 Заданий: 5</div>
+                        </div>
+                        <div class="course-notifications">1</div>
                     </div>
-                    {% endfor %}
+                    
+                    <!-- Можно добавить больше курсов -->
                 </div>
             </section>
         </section>
@@ -101,9 +146,8 @@
                     <label for="search-course">Курс</label>
                     <select id="search-course">
                         <option value="">Все курсы</option>
-                        {% for course in courses %}
-                        <option value="{{ course.id }}">{{ course.title }}</option>
-                        {% endfor %}
+                        <option value="programming">Введение в программирование</option>
+                        <option value="web">Веб-разработка</option>
                     </select>
                 </div>
                 
@@ -112,7 +156,7 @@
 
             <section id="results-section">
                 <div id="results-table" class="hidden">
-                    <!-- Таблица будет рендериться здесь -->
+                    <!-- Заголовок таблицы -->
                     <div class="homework-row homework-row-header">
                         <div>Студент</div>
                         <div>Курс</div>
@@ -122,13 +166,37 @@
                         <div>Оценка</div>
                         <div>Действия</div>
                     </div>
-                    <!-- Строки с заданиями будут добавляться динамически -->
+                    
+                    <!-- Пример строк с заданиями -->
+                    <div class="homework-row">
+                        <div>Иванов А.</div>
+                        <div>Введение в программирование</div>
+                        <div>Лабораторная 1</div>
+                        <div>15.12.2024</div>
+                        <div>⚠️ На проверке</div>
+                        <div>-</div>
+                        <div>
+                            <button class="comment-btn" title="Добавить комментарий">💬</button>
+                        </div>
+                    </div>
+                    
+                    <div class="homework-row">
+                        <div>Петрова М.</div>
+                        <div>Веб-разработка</div>
+                        <div>Проект "Сайт"</div>
+                        <div>20.12.2024</div>
+                        <div>✅ Проверено</div>
+                        <div>95/100</div>
+                        <div>
+                            <button class="comment-btn" title="Посмотреть комментарии">💬</button>
+                        </div>
+                    </div>
                 </div>
             </section>
         </section>
 
         <!-- Модальное окно для комментариев -->
-        <div id="comment-modal" class="modal">
+        <div id="comment-modal" class="modal hidden">
             <div class="modal-content">
                 <button class="modal-close">&times;</button>
                 <h3>Комментарий к работе</h3>
@@ -145,52 +213,57 @@
             <div class="rewards-header">
                 <h2 class="rewards-title">Мои награды</h2>
                 <div class="rewards-score">
-                    💎 Баллы: <span id="totalScore">0</span>
+                    💎 Баллы: <span id="totalScore">125</span>
                 </div>
             </div>
             
             <div class="rewards-grid" id="rewardsGrid">
-                <!-- Награды будут добавляться динамически -->
-                <div class="reward-card">
+                <div class="reward-card achieved">
                     <div class="reward-icon">🏆</div>
                     <div class="reward-name">Первый курс</div>
-                    <div class="reward-description">Создайте ваш первый обучающий курс</div>
+                    <div class="reward-description">Создайте и запустите свой первый курс</div>
                     <div class="reward-value">+50 баллов</div>
                 </div>
                 
-                <div class="reward-card">
+                <div class="reward-card achieved">
                     <div class="reward-icon">⭐</div>
                     <div class="reward-name">Активный преподаватель</div>
-                    <div class="reward-description">Проверьте 50 домашних заданий</div>
+                    <div class="reward-description">Проверьте 10 домашних заданий</div>
+                    <div class="reward-value">+30 баллов</div>
+                </div>
+                
+                <div class="reward-card">
+                    <div class="reward-icon">🚀</div>
+                    <div class="reward-name">Эксперт</div>
+                    <div class="reward-description">Получите 5 положительных отзывов</div>
                     <div class="reward-progress">
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 30%"></div>
-                        </div>
-                        <div class="reward-stats">
-                            <span>15/50</span>
-                            <span>30%</span>
+                            <div class="progress-fill" style="width: 60%"></div>
                         </div>
                     </div>
-                    <div class="reward-value">+100 баллов</div>
+                    <div class="reward-stats">
+                        <span>3/5</span>
+                        <span>+75 баллов</span>
+                    </div>
                 </div>
             </div>
             
             <div class="rewards-summary">
                 <div class="summary-grid">
                     <div class="summary-item">
-                        <div class="summary-value" id="totalRewards">2</div>
+                        <div class="summary-value" id="totalRewards">8</div>
                         <div class="summary-label">Всего наград</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="achievedRewards">1</div>
+                        <div class="summary-value" id="achievedRewards">2</div>
                         <div class="summary-label">Получено</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="completionRate">50%</div>
+                        <div class="summary-value" id="completionRate">25%</div>
                         <div class="summary-label">Прогресс</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="nextReward">Активный преподаватель</div>
+                        <div class="summary-value" id="nextReward">Эксперт</div>
                         <div class="summary-label">Следующая награда</div>
                     </div>
                 </div>
@@ -199,55 +272,12 @@
     </main>
     
     <footer>
-        <p>© 2025 Образовательная платформа. Преподаватель: {{ user.last_name }} {{ user.first_name }}</p>
+        <p>© 2024 Образовательная платформа. Все права защищены.</p>
     </footer>
 
-    <!-- Django CSRF токен для AJAX запросов -->
-    <script>
-        const CSRF_TOKEN = '{{ csrf_token }}';
-        const USER_DATA = {
-            id: {{ user.id }},
-            firstName: '{{ user.first_name }}',
-            lastName: '{{ user.last_name }}',
-            email: '{{ user.email }}'
-        };
-    </script>
-    
+    <!-- JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
     
-    <style>
-        /* Дополнительные стили для объединенного шаблона */
-        .welcome-section {
-            margin: 20px auto;
-            max-width: 1200px;
-        }
-        
-        .no-courses {
-            background: var(--light-cream);
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        
-        .no-courses a {
-            font-weight: bold;
-            text-decoration: none;
-        }
-        
-        .no-courses a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Стили для кнопки выхода в мобильной версии */
-        @media (max-width: 768px) {
-            .nav-buttons form {
-                width: 100%;
-            }
-            
-            .nav-buttons form .nav-btn {
-                width: 100%;
-                text-align: center;
-            }
-        }
-    </style>
+
 </body>
 </html>
