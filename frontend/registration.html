@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">  
+    <title>Регистрация преподавателя</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+<div class="container">
+    <h2>Регистрация преподавателя</h2>
+
+    <form id="registerForm">
+
+        <div class="form-group">
+            <label>ФИО</label>
+            <input type="text" name="full_name" id="full_name" placeholder="Иванов Иван Иванович" required>
+            <div class="error-message" id="full_name_error">ФИО должно содержать только буквы и пробелы</div>
+        </div>
+
+        <div class="form-group">
+            <label>Телефон</label>
+            <input type="text" name="phone" id="phone" placeholder="+7 (___) ___-__-__" required>
+            <div class="error-message" id="phone_error">Введите корректный номер телефона</div>
+        </div>
+
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email" name="email" id="email" placeholder="example@mail.ru" required>
+            <div class="error-message" id="email_error">Введите корректный email адрес</div>
+        </div>
+
+        <div class="form-group">
+            <label>Логин</label>
+            <input type="text" name="username" id="username" placeholder="login123" required>
+            <div class="error-message" id="username_error">Логин должен содержать только латинские буквы, цифры и символы подчеркивания</div>
+        </div>
+
+        <div class="form-group">
+            <label>Пароль *</label>
+            <input type="password" name="password1" id="password1"
+                   placeholder="Введите пароль" required>
+            <div class="error-message" id="password1_error"></div>
+            
+            <div class="password-requirements">
+                <div class="requirement invalid" id="req-length">
+                    <span class="requirement-icon">✗</span>
+                    <span>Минимум 8 символов</span>
+                </div>
+                <div class="requirement invalid" id="req-latin">
+                    <span class="requirement-icon">✗</span>
+                    <span>Только латинские буквы, цифры и специальные символы</span>
+                </div>
+                <div class="requirement invalid" id="req-not-only-digits">
+                    <span class="requirement-icon">✗</span>
+                    <span>Не может состоять только из цифр</span>
+                </div>
+                <div class="requirement invalid" id="req-not-common">
+                    <span class="requirement-icon">✗</span>
+                    <span>Не слишком простой и распространенный</span>
+                </div>
+                <div class="requirement invalid" id="req-not-personal">
+                    <span class="requirement-icon">✗</span>
+                    <span>Не похож на вашу личную информацию</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Повторите пароль *</label>
+            <input type="password" name="password2" id="password2" placeholder="Повторите пароль" required>
+            <div class="error-message" id="password2_error">Пароли не совпадают</div>
+        </div>
+
+        <button type="submit" id="submit-btn">Сохранить</button>
+    </form>
+
+     <div class="login-link">
+            Уже есть аккаунт? <a href="login.html">Войти</a>
+        </div>
+
+</div>
+<script src="js/registration.js"></script>
+
+</body>
+</html>

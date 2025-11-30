@@ -1,24 +1,27 @@
 :root {
-    /* Палитра */
+    /* Цветовая палитра */
     --beige-dark: #ab9b8e;
     --gray-blue: #8690a2;
     --sand: #d2c296;
     --light-blue: #bdd1d3;
     --light-cream: #e0decd;
-
     --brown-dark: #4c3d19;
     --olive-dark: #354024;
     --muted-green: #889066;
     --warm-sand: #cfbb99;
     --soft-cream: #e5d7c4;
-
+    
+    /* Функциональные цвета */
     --bg-color: var(--soft-cream);
     --form-bg: white;
     --accent: var(--olive-dark);
     --accent-hover: var(--brown-dark);
     --input-border: var(--gray-blue);
+    --error-color: #e74c3c;
+    --success-color: #2ecc71;
 }
 
+/* Базовые стили */
 body {
     font-family: Arial, sans-serif;
     background: radial-gradient(circle, rgba(134,144,162,1) 0%, rgba(235,245,181,1) 100%);
@@ -32,7 +35,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 420px;
+    max-width: 450px;
     background: var(--form-bg);
     padding: 28px;
     border-radius: 12px;
@@ -44,8 +47,10 @@ h2 {
     text-align: center;
     margin-bottom: 25px;
     font-weight: bold;
+    color: var(--olive-dark);
 }
 
+/* Формы */
 .form-group {
     margin-bottom: 18px;
 }
@@ -54,10 +59,12 @@ label {
     display: block;
     margin-bottom: 6px;
     font-weight: bold;
+    color: var(--brown-dark);
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+input[type="email"] {
     width: 100%;
     padding: 12px;
     border: 2px solid var(--gray-blue);
@@ -68,12 +75,67 @@ input[type="password"] {
 }
 
 input[type="text"]:focus,
-input[type="password"]:focus {
+input[type="password"]:focus,
+input[type="email"]:focus {
     border-color: #8AB6BA;
     outline: none;
     background: var(--light-blue);
 }
 
+/* Стили для чекбокса (только для формы входа) */
+.checkbox-group input {
+    margin-right: 10px;
+    transform: scale(1.2);
+    accent-color: var(--accent);
+}
+
+/* Валидация */
+input.error {
+    border-color: var(--error-color);
+    background-color: #ffeaea;
+}
+
+input.success {
+    border-color: var(--success-color);
+    background-color: #eaffea;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 13px;
+    margin-top: 5px;
+    display: none;
+}
+
+/* Требования к паролю (только для регистрации) */
+.password-requirements {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.requirement {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.requirement.valid {
+    color: var(--success-color);
+}
+
+.requirement.invalid {
+    color: var(--error-color);
+}
+
+.requirement-icon {
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+/* Кнопки */
 button {
     width: 100%;
     padding: 12px;
@@ -84,6 +146,7 @@ button {
     font-size: 16px;
     cursor: pointer;
     transition: 0.3s;
+    margin-top: 10px;
 }
 
 button:hover {
@@ -92,21 +155,37 @@ button:hover {
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
-.register-link {
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Ссылки перехода между формами */
+.register-link,
+.login-link {
     margin-top: 20px;
     text-align: center;
+    font-size: 15px;
+    color: var(--brown-dark);
 }
 
-.register-link a {
-    color: black;
+.register-link a,
+.login-link a {
+    color: var(--olive-dark);
     text-decoration: none;
     font-weight: bold;
+    transition: color 0.3s;
 }
 
-.register-link a:hover {
+.register-link a:hover,
+.login-link a:hover {
+    color: var(--brown-dark);
     text-decoration: underline;
 }
 
+/* Адаптивность */
 @media (max-width: 480px) {
     .container {
         max-width: 90%;

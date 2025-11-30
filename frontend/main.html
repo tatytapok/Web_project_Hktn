@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель преподавателя</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="profile-section">
+                <div class="profile-pic-container">
+                    <img src="https://via.placeholder.com/150" alt="Фото преподавателя" class="profile-pic" id="profilePic">
+                    <input type="file" id="profilePicInput" class="profile-pic-input" accept="image/*">
+                </div>
+                <div class="profile-name" id="profileName">Иванов Иван Иванович</div>
+            </div>
+            
+            <div class="nav-buttons" id="navButtons">
+                <a href="#homeworks" class="nav-btn">Домашнее задание</a>
+                <a href="#home" class="nav-btn">Домой</a>
+            </div>
+            
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+<main>
+    <section id="home" class="section">
+        <h2 class="my-course">Мои курсы</h2>
+        <div class="course-buttons">
+            <button class="course-btn active-course">Активные</button>
+            <button class="course-btn indev-course">В разработке</button>
+            <button class="course-btn archive-course">В архиве</button>
+        </div>
+
+        <section class="course-panel" id="coursePanel">
+            <div id="panelMessage">Удачного рабочего дня, <span id="userName">Иванов Иван Иванович</span>!</div>
+            
+            <!-- Стрелки навигации -->
+            <button class="nav-arrow left" id="prevArrow">‹</button>
+            <button class="nav-arrow right" id="nextArrow">›</button>
+            
+            <div class="courses-container" id="coursesContainer">
+                <!-- Блоки курсов будут добавляться динамически -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<!-- HTML структура -->
+<section id="homeworks" class="section">
+    <h2>Домашние задания</h2>
+    
+    <div id="search-panel">
+        <div class="search-group">
+            <label for="search-name">Фамилия ученика</label>
+            <input type="text" id="search-name" placeholder="Введите фамилию">
+        </div>
+        
+        <div class="search-group">
+            <label for="search-deadline">Срок сдачи</label>
+            <input type="date" id="search-deadline">
+        </div>
+        
+        <div class="search-group">
+            <label for="search-course">Курс</label>
+            <select id="search-course">
+                <option value="">Все курсы</option>
+                <!-- Курсы будут добавляться динамически -->
+            </select>
+        </div>
+        
+        <button id="search-btn">Найти</button>
+    </div>
+
+    <section id="results-section">
+        <div id="results-table" class="hidden">
+            <!-- Таблица будет рендериться здесь -->
+        </div>
+    </section>
+</section>
+
+<!-- Модальное окно для комментариев -->
+<div id="comment-modal" class="modal hidden">
+    <div class="modal-content">
+        <button class="modal-close">&times;</button>
+        <h3>Комментарий к работе</h3>
+        <textarea id="comment-input" placeholder="Введите ваш комментарий..."></textarea>
+        <div class="modal-buttons">
+            <button class="modal-btn cancel-btn">Отмена</button>
+            <button id="save-comment" class="modal-btn">Сохранить</button>
+        </div>
+    </div>
+</div>
+        </section>
+        
+    </main>
+    
+    <footer>
+        <p>© 2025 Сайт преподавателя. Все права защищены.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
