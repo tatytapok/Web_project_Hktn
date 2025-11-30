@@ -30,80 +30,113 @@
         </nav>
     </header>
 
-<main>
-    <section id="home" class="section">
-        <h2 class="my-course">Мои курсы</h2>
-        <div class="course-buttons">
-            <button class="course-btn active-course">Активные</button>
-            <button class="course-btn indev-course">В разработке</button>
-            <button class="course-btn archive-course">В архиве</button>
-        </div>
+    <main>
+        <section id="home" class="section">
+            <h2 class="my-course">Мои курсы</h2>
+            <div class="course-buttons">
+                <button class="course-btn active-course">Активные</button>
+                <button class="course-btn indev-course">В разработке</button>
+                <button class="course-btn archive-course">В архиве</button>
+            </div>
 
-        <section class="course-panel" id="coursePanel">
-            <div id="panelMessage">Удачного рабочего дня, <span id="userName">Иванов Иван Иванович</span>!</div>
+            <section class="course-panel" id="coursePanel">
+                <div id="panelMessage">Удачного рабочего дня, <span id="userName">Иванов Иван Иванович</span>!</div>
+                    
+                    <!-- Стрелки навигации -->
+                    <button class="nav-arrow left" id="prevArrow">‹</button>
+                    <button class="nav-arrow right" id="nextArrow">›</button>
+                    
+                    <div class="courses-container" id="coursesContainer">
+                        <!-- Блоки курсов будут добавляться динамически -->
+                </div>
+            </section>
+        </section>
+
+        <!-- HTML структура -->
+        <section id="homeworks" class="section">
+            <h2>Домашние задания</h2>
             
-            <!-- Стрелки навигации -->
-            <button class="nav-arrow left" id="prevArrow">‹</button>
-            <button class="nav-arrow right" id="nextArrow">›</button>
+            <div id="search-panel">
+                <div class="search-group">
+                    <label for="search-name">Фамилия ученика</label>
+                    <input type="text" id="search-name" placeholder="Введите фамилию">
+                </div>
+                
+                <div class="search-group">
+                    <label for="search-deadline">Срок сдачи</label>
+                    <input type="date" id="search-deadline">
+                </div>
+                
+                <div class="search-group">
+                    <label for="search-course">Курс</label>
+                    <select id="search-course">
+                        <option value="">Все курсы</option>
+                        <!-- Курсы будут добавляться динамически -->
+                    </select>
+                </div>
+                
+                <button id="search-btn">Найти</button>
+            </div>
+
+            <section id="results-section">
+                <div id="results-table" class="hidden">
+                    <!-- Таблица будет рендериться здесь -->
+                </div>
+            </section>
+        </section>
+
+        <!-- Модальное окно для комментариев -->
+        <div id="comment-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Комментарий к работе</h3>
+                <textarea id="comment-input" placeholder="Введите ваш комментарий..."></textarea>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel-btn">Отмена</button>
+                    <button id="save-comment" class="modal-btn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+            </section>
+    
+
+        <section class="rewards">
+            <div class="rewards-header">
+                <h2 class="rewards-title" style="color:#889066 ;">Мои награды</h2>
+                <div class="rewards-score">
+                    💎 Баллы: <span id="totalScore">0</span>
+                </div>
+            </div>
             
-            <div class="courses-container" id="coursesContainer">
-                <!-- Блоки курсов будут добавляться динамически -->
+            <div class="rewards-grid" id="rewardsGrid">
+                <!-- Награды будут добавляться динамически -->
+            </div>
+            
+            <div class="rewards-summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value" id="totalRewards">0</div>
+                        <div class="summary-label">Всего наград</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="achievedRewards">0</div>
+                        <div class="summary-label">Получено</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="completionRate">0%</div>
+                        <div class="summary-label">Прогресс</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="nextReward">-</div>
+                        <div class="summary-label">Следующая награда</div>
+                    </div>
+                </div>
             </div>
         </section>
-    </section>
-</main>
-
-<!-- HTML структура -->
-<section id="homeworks" class="section">
-    <h2>Домашние задания</h2>
-    
-    <div id="search-panel">
-        <div class="search-group">
-            <label for="search-name">Фамилия ученика</label>
-            <input type="text" id="search-name" placeholder="Введите фамилию">
-        </div>
-        
-        <div class="search-group">
-            <label for="search-deadline">Срок сдачи</label>
-            <input type="date" id="search-deadline">
-        </div>
-        
-        <div class="search-group">
-            <label for="search-course">Курс</label>
-            <select id="search-course">
-                <option value="">Все курсы</option>
-                <!-- Курсы будут добавляться динамически -->
-            </select>
-        </div>
-        
-        <button id="search-btn">Найти</button>
-    </div>
-
-    <section id="results-section">
-        <div id="results-table" class="hidden">
-            <!-- Таблица будет рендериться здесь -->
-        </div>
-    </section>
-</section>
-
-<!-- Модальное окно для комментариев -->
-<div id="comment-modal" class="modal hidden">
-    <div class="modal-content">
-        <button class="modal-close">&times;</button>
-        <h3>Комментарий к работе</h3>
-        <textarea id="comment-input" placeholder="Введите ваш комментарий..."></textarea>
-        <div class="modal-buttons">
-            <button class="modal-btn cancel-btn">Отмена</button>
-            <button id="save-comment" class="modal-btn">Сохранить</button>
-        </div>
-    </div>
-</div>
-        </section>
-        
     </main>
     
     <footer>
-        <p>© 2025 Сайт преподавателя. Все права защищены.</p>
+        <p>© 2025 Сайт преподавателя.</p>
     </footer>
 
     <script src="js/main.js"></script>

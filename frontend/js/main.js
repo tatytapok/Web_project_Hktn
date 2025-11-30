@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalClose = document.querySelector('.modal-close');
     const cancelBtn = document.querySelector('.cancel-btn');
 
+     // Инициализация наград
+    if (document.querySelector('.rewards')) {
+        initializeRewards();
+    }
+
     // ===== ДАННЫХ =====
     // Данные курсов
     const coursesData = {
@@ -112,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 notifications: 0
             }
         ]
+        
     };
 
     let currentCourseType = '';
@@ -250,6 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         resultsTable.classList.remove("hidden");
         resultsTable.classList.add("visible");
+
+        addHomeworkRowEventListeners();
     }
 
     function formatDate(dateString) {
@@ -257,6 +265,49 @@ document.addEventListener('DOMContentLoaded', function() {
         const date = new Date(dateString);
         return date.toLocaleDateString('ru-RU');
     }
+
+    // Функция для добавления обработчиков событий на строки домашних заданий
+function addHomeworkRowEventListeners() {
+    const homeworkRows = document.querySelectorAll('.homework-row:not(.homework-row-header)');
+    
+    homeworkRows.forEach(row => {
+        // Обработчик клика по строке (кроме кнопки комментария)
+        row.addEventListener('click', function(e) {
+            // Проверяем, что клик не по кнопке комментария
+            if (!e.target.classList.contains('comment-btn') && !e.target.closest('.comment-btn')) {
+                const homeworkId = this.getAttribute('data-id');
+                navigateToHomeworkPage(homeworkId);
+            }
+        });
+        
+        // Обработчик для кнопки комментария
+        const commentBtn = row.querySelector('.comment-btn');
+        if (commentBtn) {
+            commentBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Предотвращаем срабатывание клика по строке
+                const homeworkId = row.getAttribute('data-id');
+                openCommentModal(homeworkId);
+            });
+        }
+    });
+}
+
+// Функция перехода на страницу домашнего задания
+function navigateToHomeworkPage(homeworkId) {
+    // В реальном приложении здесь будет переход на страницу домашнего задания
+    console.log(`Переход к домашнему заданию ID: ${homeworkId}`);
+    
+    // Пример URL для перехода (замените на ваш реальный URL)
+    const homeworkPageUrl = `/homework-detail.html?id=${homeworkId}`;
+    
+    // Для демонстрации показываем alert, в реальном приложении используем:
+    // window.location.href = homeworkPageUrl;
+    
+    alert(`Переход к домашнему заданию ID: ${homeworkId}\nURL: ${homeworkPageUrl}`);
+    
+    // Раскомментируй следующую строку для реального перехода:
+    // window.location.href = homeworkPageUrl;
+}
 
     // ===== MOCK-ДАННЫЕ ДЛЯ ТЕСТИРОВАНИЯ =====
     // -------- УДАЛИТЬ ПРИ ДАЛЬНЕЙШИХ ЭТАПАХ -----------
@@ -384,6 +435,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     }
 
+    
+
     // ===== API ФУНКЦИИ (ЗАКОММЕНТИРОВАНЫ ДЛЯ БУДУЩЕГО ИСПОЛЬЗОВАНИЯ) =====
     /*
     async function searchHomeworksAPI() {
@@ -507,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = e.target.closest('.homework-row');
             if (row && !row.classList.contains('homework-row-header') && !e.target.classList.contains('comment-btn')) {
                 const id = row.dataset.id;
-                window.location.href = `/homework.html?id=${id}`;
+                window.location.href = `./homework.html?id=${id}`;
             }
         });
 
@@ -557,3 +610,135 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCourses();
     }
 });
+
+// ===== ФУНКЦИИ СЕКЦИИ НАГРАД =====
+function initializeRewards() {
+    const rewardsData = {
+        totalScore: 1250,
+        rewards: [
+            {
+                id: 1,
+                name: "Первый курс",
+                description: "Создайте и запустите свой первый курс",
+                icon: "🚀",
+                current: 1,
+                target: 1,
+                achieved: true,
+                value: 100,
+                type: "achievement"
+            },
+            {
+                id: 2,
+                name: "Активный преподаватель",
+                description: "Проведите 10+ занятий в месяц",
+                icon: "⭐",
+                current: 8,
+                target: 10,
+                achieved: false,
+                value: 150,
+                type: "monthly"
+            },
+            {
+                id: 3,
+                name: "Мастер качества",
+                description: "Получите 50+ положительных отзывов",
+                icon: "🏆",
+                current: 42,
+                target: 50,
+                achieved: false,
+                value: 200,
+                type: "quality"
+            },
+            {
+                id: 4,
+                name: "Супер-ментор",
+                description: "Помогите 100+ студентам завершить курсы",
+                icon: "👨‍🏫",
+                current: 78,
+                target: 100,
+                achieved: false,
+                value: 300,
+                type: "impact"
+            },
+            {
+                id: 5,
+                name: "Инноватор",
+                description: "Добавьте 5+ интерактивных материалов",
+                icon: "💡",
+                current: 3,
+                target: 5,
+                achieved: false,
+                value: 120,
+                type: "content"
+            },
+            {
+                id: 6,
+                name: "Сообщество",
+                description: "Создайте группу из 50+ активных студентов",
+                icon: "👥",
+                current: 35,
+                target: 50,
+                achieved: false,
+                value: 180,
+                type: "community"
+            }
+        ]
+    };
+
+    renderRewards(rewardsData);
+    updateRewardsSummary(rewardsData);
+}
+
+function renderRewards(data) {
+    const rewardsGrid = document.getElementById('rewardsGrid');
+    const totalScore = document.getElementById('totalScore');
+    
+    totalScore.textContent = data.totalScore;
+    
+    rewardsGrid.innerHTML = data.rewards.map(reward => `
+        <div class="reward-card ${reward.achieved ? 'achieved' : ''}" data-id="${reward.id}">
+            <div class="reward-icon">${reward.icon}</div>
+            <div class="reward-name">${reward.name}</div>
+            <div class="reward-description">${reward.description}</div>
+            
+            ${!reward.achieved ? `
+                <div class="reward-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(reward.current / reward.target) * 100}%"></div>
+                    </div>
+                    <div class="reward-stats">
+                        <span>${reward.current}/${reward.target}</span>
+                        <span>${Math.round((reward.current / reward.target) * 100)}%</span>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <div class="reward-value">
+                ${reward.achieved ? '✅ Получено' : `+${reward.value} баллов`}
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateRewardsSummary(data) {
+    const totalRewards = document.getElementById('totalRewards');
+    const achievedRewards = document.getElementById('achievedRewards');
+    const completionRate = document.getElementById('completionRate');
+    const nextReward = document.getElementById('nextReward');
+    
+    const achieved = data.rewards.filter(r => r.achieved).length;
+    const total = data.rewards.length;
+    const rate = Math.round((achieved / total) * 100);
+    
+    // Находим следующую ближайшую награду
+    const nextAchievable = data.rewards
+        .filter(r => !r.achieved)
+        .sort((a, b) => (a.current / a.target) - (b.current / b.target))
+        .pop();
+    
+    totalRewards.textContent = total;
+    achievedRewards.textContent = achieved;
+    completionRate.textContent = `${rate}%`;
+    nextReward.textContent = nextAchievable ? nextAchievable.name : 'Все получены!';
+}
+
