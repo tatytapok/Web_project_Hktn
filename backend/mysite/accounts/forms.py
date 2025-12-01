@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from .models import TeacherProfile
+from django.contrib.auth.models import User, Group
+from .models import TeacherProfile, Grade
 
 class TeacherRegistrationForm(UserCreationForm):
     last_name = forms.CharField(
@@ -56,5 +56,50 @@ class TeacherRegistrationForm(UserCreationForm):
                 patronymic=self.cleaned_data['patronymic'],
                 phone=self.cleaned_data['phone']
             )
+            # Добавляем пользователя в группу преподавателей
+            teacher_group, created = Group.objects.get_or_create(name='Teacher')
+            user.groups.add(teacher_group)
+
         return user
+    
+class GradeForm(forms.ModelForm):
+    class Meta:
+        model = Grade
+        fields = ['grade_value', 'points', 'comment']
+        widgets = {
+            'grade_value': forms.Select(attrs={
+                'class': 'form-control',
+                'style': 'max-width: 200px;'
+            }),
+            'points': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'style': 'max-width: 200px;'
+            }),
+            'comment': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'Введите ваш комментарий к работе...'
+            }),
+        }
+        labels = {
+            'grade_value': 'Оценка',
+            'points': 'Баллы',
+            'comment': 'Комментарий преподавателя',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        max_points = kwargs.pop('max_points', 100)
+        super().__init__(*args, **kwargs)
+        self.fields['points'].widget.attrs.update({
+            'min': 0,
+            'max': max_points
+        })
+        # Устанавливаем варианты оценок
+        self.fields['grade_value'].choices = [
+            (5, '5 (Отлично)'),
+            (4, '4 (Хорошо)'),
+            (3, '3 (Удовлетворительно)'),
+            (2, '2 (Неудовлетворительно)'),
+            (1, '1 (Не сдано)'),
+        ]  
     
