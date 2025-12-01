@@ -8,3 +8,4 @@ class TeacherProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name}"
+    

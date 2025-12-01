@@ -71,6 +71,8 @@
                     <h3 style="color: var(--brown-dark); margin-bottom: 10px;">Статистика:</h3>
                     <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
                     <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Курсов:</strong> {{ courses.count }}</p>
+                    <p><strong>Заданий на проверку:</strong> {{ pending_submissions.count }}</p>
                 </div>
             </div>
         </section>
@@ -79,9 +81,9 @@
         <section id="home" class="section">
             <h2 class="my-course">Мои курсы</h2>
             <div class="course-buttons">
-                <button class="course-btn active-course">Активные</button>
-                <button class="course-btn indev-course">В разработке</button>
-                <button class="course-btn archive-course">В архиве</button>
+                <button class="course-btn active-course" data-type="active">Активные</button>
+                <button class="course-btn indev-course" data-type="in_dev">В разработке</button>
+                <button class="course-btn archive-course" data-type="archive">В архиве</button>
             </div>
 
             <section class="course-panel" id="coursePanel">
@@ -101,28 +103,19 @@
                 <button class="nav-arrow right" id="nextArrow">›</button>
                 
                 <div class="courses-container" id="coursesContainer">
-                    <!-- Пример курсов - в реальном приложении здесь будет цикл Django -->
-                    <div class="course-card">
-                        <div class="course-header">Введение в программирование</div>
+                    {% for course in courses %}
+                    <div class="course-card" data-type="active">
+                        <div class="course-header">{{ course.title }}</div>
                         <div class="course-details">
-                            <div class="course-detail">📅 Начало: 01.09.2024</div>
-                            <div class="course-detail">👥 Студентов: 25</div>
-                            <div class="course-detail">📝 Заданий: 8</div>
+                            <div class="course-detail">📅 Создан: {{ course.created_at|date:"d.m.Y" }}</div>
+                            <div class="course-detail">👥 Студентов: {{ course.students_count }}</div>
+                            <div class="course-detail">📝 Заданий: {{ course.assignments_count }}</div>
+                            <div class="course-detail">⚠️ На проверке: {{ course.pending_count }}</div>
                         </div>
-                        <div class="course-notifications">3</div>
+                        <div class="course-notifications">{{ course.pending_count }}</div>
                     </div>
-                    
-                    <div class="course-card">
-                        <div class="course-header">Веб-разработка</div>
-                        <div class="course-details">
-                            <div class="course-detail">📅 Начало: 15.09.2024</div>
-                            <div class="course-detail">👥 Студентов: 18</div>
-                            <div class="course-detail">📝 Заданий: 5</div>
-                        </div>
-                        <div class="course-notifications">1</div>
-                    </div>
-                    
-                    <!-- Можно добавить больше курсов -->
+                    {% empty %}
+                    {% endfor %}
                 </div>
             </section>
         </section>
@@ -146,8 +139,9 @@
                     <label for="search-course">Курс</label>
                     <select id="search-course">
                         <option value="">Все курсы</option>
-                        <option value="programming">Введение в программирование</option>
-                        <option value="web">Веб-разработка</option>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}">{{ course.title }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 
@@ -155,7 +149,7 @@
             </div>
 
             <section id="results-section">
-                <div id="results-table" class="hidden">
+                <div id="results-table">
                     <!-- Заголовок таблицы -->
                     <div class="homework-row homework-row-header">
                         <div>Студент</div>
@@ -167,82 +161,89 @@
                         <div>Действия</div>
                     </div>
                     
-                    <!-- Пример строк с заданиями -->
+                    <!-- Реальные данные из базы -->
+                    {% for submission in submissions %}
                     <div class="homework-row">
-                        <div>Иванов А.</div>
-                        <div>Введение в программирование</div>
-                        <div>Лабораторная 1</div>
-                        <div>15.12.2024</div>
-                        <div>⚠️ На проверке</div>
-                        <div>-</div>
                         <div>
-                            <button class="comment-btn" title="Добавить комментарий">💬</button>
+                            {% if submission.student.get_full_name %}
+                                {{ submission.student.get_full_name }}
+                            {% else %}
+                                {{ submission.student.username }}
+                            {% endif %}
+                        </div>
+                        <div>{{ submission.assignment.course.title }}</div>
+                        <div>{{ submission.assignment.title }}</div>
+                        <div>{{ submission.assignment.due_date|date:"d.m.Y" }}</div>
+                        <div>
+                            <span class="status-badge status-{{ submission.status }}">
+                                {{ submission.get_status_display }}
+                            </span>
+                        </div>
+                        <div>
+                            {% if submission.grade %}
+                                {{ submission.grade.score }}/{{ submission.assignment.max_score }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'homework_detail' submission.id %}" class="comment-btn" title="Просмотреть задание">        
+                                👁️
+                            </a>
                         </div>
                     </div>
-                    
-                    <div class="homework-row">
-                        <div>Петрова М.</div>
-                        <div>Веб-разработка</div>
-                        <div>Проект "Сайт"</div>
-                        <div>20.12.2024</div>
-                        <div>✅ Проверено</div>
-                        <div>95/100</div>
-                        <div>
-                            <button class="comment-btn" title="Посмотреть комментарии">💬</button>
-                        </div>
+                    {% empty %}
+                    <div class="no-results">
+                        <p>Нет заданий для проверки</p>
                     </div>
+                    {% endfor %}
                 </div>
             </section>
         </section>
-
-        <!-- Модальное окно для комментариев -->
-        <div id="comment-modal" class="modal hidden">
-            <div class="modal-content">
-                <button class="modal-close">&times;</button>
-                <h3>Комментарий к работе</h3>
-                <textarea id="comment-input" placeholder="Введите ваш комментарий..."></textarea>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel-btn">Отмена</button>
-                    <button id="save-comment" class="modal-btn">Сохранить</button>
-                </div>
-            </div>
-        </div>
 
         <!-- Секция наград -->
         <section class="rewards">
             <div class="rewards-header">
                 <h2 class="rewards-title">Мои награды</h2>
                 <div class="rewards-score">
-                    💎 Баллы: <span id="totalScore">125</span>
+                    💎 Баллы: <span id="totalScore">{{ total_points }}</span>
                 </div>
             </div>
             
             <div class="rewards-grid" id="rewardsGrid">
-                <div class="reward-card achieved">
+                <div class="reward-card {% if courses.count > 0 %}achieved{% endif %}">
                     <div class="reward-icon">🏆</div>
                     <div class="reward-name">Первый курс</div>
                     <div class="reward-description">Создайте и запустите свой первый курс</div>
                     <div class="reward-value">+50 баллов</div>
                 </div>
                 
-                <div class="reward-card achieved">
+                <div class="reward-card {% if graded_submissions.count >= 10 %}achieved{% endif %}">
                     <div class="reward-icon">⭐</div>
                     <div class="reward-name">Активный преподаватель</div>
                     <div class="reward-description">Проверьте 10 домашних заданий</div>
-                    <div class="reward-value">+30 баллов</div>
-                </div>
-                
-                <div class="reward-card">
-                    <div class="reward-icon">🚀</div>
-                    <div class="reward-name">Эксперт</div>
-                    <div class="reward-description">Получите 5 положительных отзывов</div>
                     <div class="reward-progress">
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 60%"></div>
+                            <div class="progress-fill" style="width: {% widthratio graded_submissions.count 10 100 %}%"></div>
                         </div>
                     </div>
                     <div class="reward-stats">
-                        <span>3/5</span>
+                        <span>{{ graded_submissions.count }}/10</span>
+                        <span>+30 баллов</span>
+                    </div>
+                </div>
+                
+                <div class="reward-card {% if courses.count >= 3 %}achieved{% endif %}">
+                    <div class="reward-icon">🚀</div>
+                    <div class="reward-name">Эксперт</div>
+                    <div class="reward-description">Создайте 3 курса</div>
+                    <div class="reward-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {% widthratio courses.count 3 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="reward-stats">
+                        <span>{{ courses.count }}/3</span>
                         <span>+75 баллов</span>
                     </div>
                 </div>
@@ -251,19 +252,30 @@
             <div class="rewards-summary">
                 <div class="summary-grid">
                     <div class="summary-item">
-                        <div class="summary-value" id="totalRewards">8</div>
+                        <div class="summary-value" id="totalRewards">3</div>
                         <div class="summary-label">Всего наград</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="achievedRewards">2</div>
+                        <div class="summary-value" id="achievedRewards">
+                            {% with achieved=0 %}
+                                {% if courses.count > 0 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
+                                {% if graded_submissions.count >= 10 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
+                                {% if courses.count >= 3 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
+                                {{ achieved }}
+                            {% endwith %}
+                        </div>
                         <div class="summary-label">Получено</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="completionRate">25%</div>
+                        <div class="summary-value" id="completionRate">
+                            {% widthratio achieved_rewards 3 100 %}%
+                        </div>
                         <div class="summary-label">Прогресс</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="nextReward">Эксперт</div>
+                        <div class="summary-value" id="nextReward">
+                            {% if courses.count == 0 %}Первый курс{% elif graded_submissions.count < 10 %}Активный преподаватель{% elif courses.count < 3 %}Эксперт{% else %}Все получены!{% endif %}
+                        </div>
                         <div class="summary-label">Следующая награда</div>
                     </div>
                 </div>
@@ -278,6 +290,63 @@
     <!-- JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
     
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация курсов
+            const courseButtons = document.querySelectorAll('.course-btn');
+            const courseCards = document.querySelectorAll('.course-card');
+            
+            courseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    
+                    // Обновляем активную кнопку
+                    courseButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Показываем/скрываем курсы
+                    courseCards.forEach(card => {
+                        if (type === 'all' || card.getAttribute('data-type') === type) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Навигация по курсам
+            const prevArrow = document.getElementById('prevArrow');
+            const nextArrow = document.getElementById('nextArrow');
+            const coursesContainer = document.getElementById('coursesContainer');
+            
+            if (prevArrow && nextArrow && coursesContainer) {
+                const scrollAmount = 300;
+                
+                prevArrow.addEventListener('click', function() {
+                    coursesContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+                
+                nextArrow.addEventListener('click', function() {
+                    coursesContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+            }
+            
+            
+            // Активация таблицы результатов
+            const resultsTable = document.getElementById('results-table');
+            if (resultsTable) {
+                resultsTable.classList.remove('hidden');
+            }
+            
+            // Активация панели курсов
+            const coursePanel = document.getElementById('coursePanel');
+            if (coursePanel) {
+                coursePanel.classList.add('active');
+            }
+        });
+    </script> -->
 
+    
 </body>
 </html>

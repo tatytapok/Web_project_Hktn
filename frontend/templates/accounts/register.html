@@ -1,99 +1,401 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Регистрация преподавателя</title>
-    <style>
-        body { font-family: Arial; max-width: 500px; margin: 50px auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        button:hover { background: #218838; }
-        .error { color: red; font-size: 14px; margin-top: 5px; }
-        .login-link { margin-top: 20px; text-align: center; }
-        .help-text { font-size: 12px; color: #666; margin-top: 3px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Регистрация преподавателя - Образовательная платформа</title>
+    
+    <!-- Загрузка статических файлов Django -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
-    <h2>Регистрация преподавателя</h2>
-    <form method="post">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label for="id_last_name">{{ form.last_name.label }}</label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}
-                <div class="error">{{ form.last_name.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_first_name">{{ form.first_name.label }}</label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}
-                <div class="error">{{ form.first_name.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_patronymic">{{ form.patronymic.label }}</label>
-            {{ form.patronymic }}
-            {% if form.patronymic.errors %}
-                <div class="error">{{ form.patronymic.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_phone">{{ form.phone.label }}</label>
-            {{ form.phone }}
-            {% if form.phone.errors %}
-                <div class="error">{{ form.phone.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_email">{{ form.email.label }}</label>
-            {{ form.email }}
-            {% if form.email.errors %}
-                <div class="error">{{ form.email.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_username">{{ form.username.label }}</label>
-            {{ form.username }}
-            {% if form.username.errors %}
-                <div class="error">{{ form.username.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="id_password1">Пароль*</label>
-            {{ form.password1 }}
-            {% if form.password1.errors %}
-                <div class="error">{{ form.password1.errors }}</div>
-            {% endif %}
-            <div class="help-text">
-                • Пароль не должен быть слишком похож на другую вашу личную информацию.<br>
-                • Пароль должен содержать как минимум 8 символов.<br>
-                • Пароль не должен быть слишком простым и распространенным.<br>
-                • Пароль не может состоять только из цифр.
+    <div class="container">
+        <h2>Регистрация преподавателя</h2>
+
+        <!-- Сообщения Django -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags %}{% if message.tags == 'error' %}error-message{% else %}{{ message.tags }}{% endif %}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" id="registerForm">
+            {% csrf_token %}
+            
+            <!-- ФИО -->
+            <div class="form-group">
+                <label for="id_last_name">Фамилия *</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.last_name.errors }}
+                    </div>
+                {% endif %}
             </div>
+
+            <div class="form-group">
+                <label for="id_first_name">Имя *</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.first_name.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_patronymic">Отчество</label>
+                {{ form.patronymic }}
+                {% if form.patronymic.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.patronymic.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Контакты -->
+            <div class="form-group">
+                <label for="id_phone">Телефон</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.phone.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">Email *</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_username">Логин *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+                <div class="help-text" style="font-size: 12px; color: #666; margin-top: 5px;">
+                    Только латинские буквы, цифры и символы @/./+/-/_
+                </div>
+            </div>
+
+            <!-- Пароль -->
+            <div class="form-group">
+                <label for="id_password1">Пароль *</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.password1.errors }}
+                    </div>
+                {% endif %}
+                
+                <div class="password-requirements">
+                    <div class="requirement invalid" id="req-length">
+                        <span class="requirement-icon">✗</span>
+                        <span>Минимум 8 символов</span>
+                    </div>
+                    <div class="requirement invalid" id="req-latin">
+                        <span class="requirement-icon">✗</span>
+                        <span>Только латинские буквы, цифры и специальные символы</span>
+                    </div>
+                    <div class="requirement invalid" id="req-not-only-digits">
+                        <span class="requirement-icon">✗</span>
+                        <span>Не может состоять только из цифр</span>
+                    </div>
+                    <div class="requirement invalid" id="req-not-common">
+                        <span class="requirement-icon">✗</span>
+                        <span>Не слишком простой и распространенный</span>
+                    </div>
+                    <div class="requirement invalid" id="req-not-personal">
+                        <span class="requirement-icon">✗</span>
+                        <span>Не похож на вашу личную информацию</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2">Подтверждение пароля *</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <div class="error-message" style="display: block;">
+                        {{ form.password2.errors }}
+                    </div>
+                {% endif %}
+                <div class="error-message" id="password2_error" style="display: none;">
+                    Пароли не совпадают
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn">Зарегистрироваться</button>
+        </form>
+
+        <div class="login-link">
+            <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войти в систему</a></p>
         </div>
-        
-        <div class="form-group">
-            <label for="id_password2">Подтверждение пароля*</label>
-            {{ form.password2 }}
-            {% if form.password2.errors %}
-                <div class="error">{{ form.password2.errors }}</div>
-            {% endif %}
-        </div>
-        
-        <button type="submit">Сохранить</button>
-    </form>
-    
-    <div class="login-link">
-        <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
     </div>
+
+    <!-- JavaScript для валидации -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            const password1 = document.getElementById('id_password1');
+            const password2 = document.getElementById('id_password2');
+            const password2Error = document.getElementById('password2_error');
+            
+            // Элементы требований к паролю
+            const reqLength = document.getElementById('req-length');
+            const reqLatin = document.getElementById('req-latin');
+            const reqNotOnlyDigits = document.getElementById('req-not-only-digits');
+            const reqNotCommon = document.getElementById('req-not-common');
+            const reqNotPersonal = document.getElementById('req-not-personal');
+
+            // Валидация пароля в реальном времени
+            if (password1) {
+                password1.addEventListener('input', function() {
+                    validatePassword(this.value);
+                });
+            }
+
+            // Проверка совпадения паролей
+            if (password2) {
+                password2.addEventListener('input', function() {
+                    validatePasswordMatch();
+                });
+            }
+
+            function validatePassword(password) {
+                // Минимум 8 символов
+                if (password.length >= 8) {
+                    setRequirementValid(reqLength);
+                } else {
+                    setRequirementInvalid(reqLength);
+                }
+
+                // Только латинские буквы, цифры и специальные символы
+                const latinRegex = /^[A-Za-z0-9@.$+_-]+$/;
+                if (latinRegex.test(password)) {
+                    setRequirementValid(reqLatin);
+                } else {
+                    setRequirementInvalid(reqLatin);
+                }
+
+                // Не только цифры
+                if (/^\d+$/.test(password)) {
+                    setRequirementInvalid(reqNotOnlyDigits);
+                } else {
+                    setRequirementValid(reqNotOnlyDigits);
+                }
+
+                // Не слишком простой (содержит разные типы символов)
+                const hasLetter = /[A-Za-z]/.test(password);
+                const hasNumber = /\d/.test(password);
+                const hasSpecial = /[@.$+_-]/.test(password);
+                
+                if ((hasLetter && hasNumber) || (hasLetter && hasSpecial) || (hasNumber && hasSpecial)) {
+                    setRequirementValid(reqNotCommon);
+                } else {
+                    setRequirementInvalid(reqNotCommon);
+                }
+
+                // Проверка на сходство с личной информацией (упрощенная)
+                const username = document.getElementById('id_username')?.value || '';
+                const email = document.getElementById('id_email')?.value || '';
+                const firstName = document.getElementById('id_first_name')?.value || '';
+                const lastName = document.getElementById('id_last_name')?.value || '';
+                
+                const personalInfo = [username, email, firstName, lastName].filter(Boolean);
+                let isSimilar = false;
+                
+                for (const info of personalInfo) {
+                    if (info && password.toLowerCase().includes(info.toLowerCase())) {
+                        isSimilar = true;
+                        break;
+                    }
+                }
+                
+                if (!isSimilar) {
+                    setRequirementValid(reqNotPersonal);
+                } else {
+                    setRequirementInvalid(reqNotPersonal);
+                }
+            }
+
+            function validatePasswordMatch() {
+                if (password1 && password2) {
+                    if (password1.value !== password2.value && password2.value.length > 0) {
+                        password2Error.style.display = 'block';
+                        password2.classList.add('error');
+                    } else {
+                        password2Error.style.display = 'none';
+                        password2.classList.remove('error');
+                    }
+                }
+            }
+
+            function setRequirementValid(element) {
+                element.classList.remove('invalid');
+                element.classList.add('valid');
+                element.querySelector('.requirement-icon').textContent = '✓';
+            }
+
+            function setRequirementInvalid(element) {
+                element.classList.remove('valid');
+                element.classList.add('invalid');
+                element.querySelector('.requirement-icon').textContent = '✗';
+            }
+
+            // Валидация при отправке формы
+            form.addEventListener('submit', function(event) {
+                let isValid = true;
+
+                // Проверка совпадения паролей
+                if (password1 && password2 && password1.value !== password2.value) {
+                    password2Error.style.display = 'block';
+                    password2.classList.add('error');
+                    isValid = false;
+                }
+
+                // Проверка требований к паролю
+                const password = password1?.value || '';
+                if (password.length < 8) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    event.preventDefault();
+                    // Прокрутка к первой ошибке
+                    const firstError = document.querySelector('.error-message[style*="display: block"]');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+
+            // Добавляем плейсхолдеры к полям, если их нет
+            const fields = {
+                'id_last_name': 'Введите вашу фамилию',
+                'id_first_name': 'Введите ваше имя',
+                'id_patronymic': 'Введите ваше отчество (при наличии)',
+                'id_phone': '+7 (___) ___-__-__',
+                'id_email': 'example@email.ru',
+                'id_username': 'Придумайте логин',
+                'id_password1': 'Введите надежный пароль',
+                'id_password2': 'Повторите пароль'
+            };
+
+            for (const [id, placeholder] of Object.entries(fields)) {
+                const field = document.getElementById(id);
+                if (field && !field.getAttribute('placeholder')) {
+                    field.setAttribute('placeholder', placeholder);
+                }
+            }
+
+            // Маска для телефона (упрощенная)
+            const phoneField = document.getElementById('id_phone');
+            if (phoneField) {
+                phoneField.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.startsWith('7') || value.startsWith('8')) {
+                        value = value.substring(1);
+                    }
+                    if (value.length > 0) {
+                        value = '+7 (' + value;
+                        if (value.length > 7) value = value.substring(0, 7) + ') ' + value.substring(7);
+                        if (value.length > 12) value = value.substring(0, 12) + '-' + value.substring(12);
+                        if (value.length > 15) value = value.substring(0, 15) + '-' + value.substring(15);
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* Дополнительные стили для регистрации */
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: var(--gray-blue);
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        /* Стили для требований пароля */
+        .password-requirements {
+            margin-top: 10px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .requirement {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .requirement.valid {
+            color: var(--success-color);
+        }
+
+        .requirement.invalid {
+            color: var(--error-color);
+        }
+
+        .requirement-icon {
+            margin-right: 8px;
+            font-weight: bold;
+            min-width: 15px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .container {
+                margin: 20px auto;
+                padding: 20px;
+            }
+            
+            .password-requirements {
+                padding: 10px;
+            }
+            
+            .requirement {
+                font-size: 11px;
+            }
+        }
+    </style>
 </body>
 </html>

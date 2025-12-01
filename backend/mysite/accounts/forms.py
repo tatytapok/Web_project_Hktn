@@ -1,4 +1,5 @@
 from django import forms
+from .models import Grade
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import TeacherProfile
@@ -57,3 +58,4 @@ class TeacherRegistrationForm(UserCreationForm):
                 phone=self.cleaned_data['phone']
             )
         return user
+    
