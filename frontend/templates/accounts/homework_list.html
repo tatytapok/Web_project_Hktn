@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список домашних заданий - Образовательная платформа</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homework.css' %}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="profile-section">
+                <div class="profile-pic-container">
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Фото преподавателя" class="profile-pic">
+                </div>
+                <div class="profile-name">
+                    {{ user.first_name }} {{ user.last_name }}
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="{% url 'teacher_dashboard' %}" class="nav-btn">← На главную</a>
+                <a href="{% url 'logout' %}" class="nav-btn" style="background: #dc3545; color: white;">Выйти</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <h1>Домашние задания для проверки</h1>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Всего:</span>
+                        <span class="stat-value">{{ page_obj.paginator.count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">На проверке:</span>
+                        <span class="stat-value">{{ pending_count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Проверено:</span>
+                        <span class="stat-value">{{ graded_count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Фильтры -->
+            <div class="filters">
+                <form method="GET" class="filter-form">
+                    <div class="filter-group">
+                        <label for="status">Статус:</label>
+                        <select name="status" id="status" class="form-control">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Все</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="course">Курс:</label>
+                        <select name="course" id="course" class="form-control">
+                            <option value="all" {% if course_filter == 'all' %}selected{% endif %}>Все курсы</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"i" %}selected{% endif %}>
+                                {{ course.title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                    <a href="{% url 'homework_list' %}" class="btn btn-secondary">Сбросить</a>
+                </form>
+            </div>
+
+            <!-- Таблица домашних заданий -->
+            <div class="homework-table">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Студент</th>
+                                <th>Курс</th>
+                                <th>Задание</th>
+                                <th>Статус</th>
+                                <th>Срок сдачи</th>
+                                <th>Дата сдачи</th>
+                                <th>Оценка</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for homework in page_obj %}
+                            <tr>
+                                <td>
+                                    <div class="student-info">
+                                        <strong>{{ homework.student.full_name }}</strong>
+                                        <small>{{ homework.student.group.name|default:"Без группы" }}</small>
+                                    </div>
+                                </td>
+                                <td>{{ homework.assignment.course.title }}</td>
+                                <td>{{ homework.assignment.title }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ homework.status }}">
+                                        {{ homework.get_status_display }}
+                                    </span>
+                                    {% if homework.priority == 'high' %}
+                                    <span class="priority-badge priority-high">Высокий</span>
+                                    {% elif homework.priority == 'medium' %}
+                                    <span class="priority-badge priority-medium">Средний</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ homework.assignment.due_date|date:"d.m.Y" }}
+                                    {% if homework.is_on_time == False %}
+                                    <br><small class="text-danger">Просрочено</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if homework.submitted_at %}
+                                    {{ homework.submitted_at|date:"d.m.Y H:i" }}
+                                    {% else %}
+                                    <span class="text-muted">Не сдано</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if homework.grade %}
+                                    <div class="grade-display">
+                                        <strong>{{ homework.grade.grade_value }}</strong>
+                                        <small>({{ homework.grade.points }}/{{ homework.assignment.max_points }})</small>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'homework_detail' homework.id %}" class="btn btn-sm btn-primary">
+                                            Проверить
+                                        </a>
+                                        {% if homework.attachments.exists %}
+                                        <a href="{% url 'download_homework_zip' homework.id %}" class="btn btn-sm btn-secondary" title="Скачать все файлы">
+                                            📥
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">
+                                    <div class="empty-state">
+                                        <p>Нет домашних заданий для проверки</p>
+                                        <p class="text-muted">Все работы проверены или студенты еще не сдали задания</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Пагинация -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                <div class="pagination-info">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </div>
+                <div class="pagination-links">
+                    {% if page_obj.has_previous %}
+                    <a href="?page=1{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}" class="page-link">
+                        Первая
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}" class="page-link">
+                        Назад
+                    </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="page-link active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}" class="page-link">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}" class="page-link">
+                        Вперед
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}" class="page-link">
+                        Последняя
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        // Автоматическое обновление статуса
+        document.addEventListener('DOMContentLoaded', function() {
+            // Автообновление страницы каждые 60 секунд
+            setTimeout(function() {
+                window.location.reload();
+            }, 60000);
+            
+            // Подсветка просроченных заданий
+            const dueDates = document.querySelectorAll('td:nth-child(5)');
+            dueDates.forEach(td => {
+                if (td.textContent.includes('Просрочено')) {
+                    td.closest('tr').classList.add('overdue-row');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -232,3 +232,171 @@ document.addEventListener('DOMContentLoaded', function() {
     // Изначально деактивируем кнопку отправки
     document.getElementById('submit-btn').disabled = true;
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== ИНИЦИАЛИЗАЦИЯ ПЕРЕМЕННЫХ =====
+    // Навигационная панель
+    const profilePicInput = document.getElementById('profilePicInput');
+    const hamburger = document.getElementById('hamburger');
+    const navButtons = document.getElementById('navButtons');
+    
+    // Секция домашних заданий
+    const searchBtn = document.getElementById('search-btn');
+    const searchName = document.getElementById('search-name');
+    const searchDeadline = document.getElementById('search-deadline');
+    const searchCourse = document.getElementById('search-course');
+
+    // ===== ФУНКЦИИ НАВИГАЦИОННОЙ ПАНЕЛИ =====
+    function loadUserData() {
+        const savedName = localStorage.getItem('teacherName');
+        const savedPhoto = localStorage.getItem('teacherPhoto');
+        
+        if (savedName) {
+            document.getElementById('profileName').textContent = savedName;
+        }
+        
+        if (savedPhoto) {
+            document.getElementById('profilePic').src = savedPhoto;
+        }
+    }
+
+    function saveUserData(name, photo) {
+        if (name) {
+            localStorage.setItem('teacherName', name);
+        }
+        if (photo) {
+            localStorage.setItem('teacherPhoto', photo);
+        }
+    }
+
+    // ===== ФУНКЦИИ СЕКЦИИ ДОМАШНИХ ЗАДАНИЙ =====
+    function filterHomeworks() {
+        const nameFilter = searchName.value.toLowerCase();
+        const dateFilter = searchDeadline.value; // YYYY-MM-DD
+        const courseFilter = searchCourse.value.toLowerCase();
+        
+        // Получаем все строки домашних заданий (кроме заголовка)
+        const homeworkRows = document.querySelectorAll('.homework-row:not(.homework-row-header)');
+        
+        homeworkRows.forEach(row => {
+            const student = row.children[0].textContent.toLowerCase();
+            const course = row.children[1].textContent.toLowerCase();
+            const dateCell = row.children[3].textContent; // в формате дд.мм.гггг
+            
+            // Преобразуем дату из дд.мм.гггг в YYYY-MM-DD для сравнения
+            let rowDate = null;
+            if (dateCell && dateCell !== '-' && dateCell !== 'Не сдано') {
+                const parts = dateCell.split('.');
+                if (parts.length === 3) {
+                    rowDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+            }
+            
+            const matchName = !nameFilter || student.includes(nameFilter);
+            const matchCourse = !courseFilter || course.includes(courseFilter);
+            const matchDate = !dateFilter || rowDate === dateFilter;
+            
+            if (matchName && matchCourse && matchDate) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Прокрутка к результатам
+        document.getElementById('results-section').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    // ===== ОБРАБОТЧИКИ СОБЫТИЙ =====
+    // Навигационная панель
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const newPhoto = event.target.result;
+                    document.getElementById('profilePic').src = newPhoto;
+                    saveUserData(null, newPhoto);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    if (hamburger) {
+        hamburger.addEventListener('click', function() {
+            navButtons.classList.toggle('active');
+        });
+    }
+
+    // Закрытие меню при клике вне его области
+    document.addEventListener('click', function(e) {
+        if (navButtons && hamburger) {
+            if (!navButtons.contains(e.target) && !hamburger.contains(e.target)) {
+                navButtons.classList.remove('active');
+            }
+        }
+    });
+
+    // Секция домашних заданий
+    if (searchBtn) {
+        searchBtn.addEventListener('click', filterHomeworks);
+    }
+
+    // Поиск при нажатии Enter в полях ввода
+    if (searchName && searchDeadline && searchCourse) {
+        [searchName, searchDeadline, searchCourse].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') filterHomeworks();
+            });
+        });
+    }
+
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
+    loadUserData();
+    
+    // Добавляем обработчики для фильтрации курсов
+    const courseButtons = document.querySelectorAll('.course-btn');
+    const courseCards = document.querySelectorAll('.course-card');
+    
+    if (courseButtons.length > 0) {
+        courseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Убираем активный класс со всех кнопок
+                courseButtons.forEach(btn => btn.classList.remove('active'));
+                // Добавляем активный класс текущей кнопке
+                this.classList.add('active');
+                
+                const type = this.getAttribute('data-type');
+                
+                // Показываем/скрываем курсы
+                courseCards.forEach(card => {
+                    if (type === 'active' || card.getAttribute('data-type') === type) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+    
+    // Навигация по курсам (если стрелки есть на странице)
+    const prevArrow = document.getElementById('prevArrow');
+    const nextArrow = document.getElementById('nextArrow');
+    const coursesContainer = document.getElementById('coursesContainer');
+    
+    if (prevArrow && nextArrow && coursesContainer) {
+        prevArrow.addEventListener('click', function() {
+            coursesContainer.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+        
+        nextArrow.addEventListener('click', function() {
+            coursesContainer.scrollBy({ left: 300, behavior: 'smooth' });
+        });
+    }
+});

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Домашнее задание - Платформа преподавателя</title>
+    
+    <!-- Загрузка статических файлов Django -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homework.css' %}">
+    
+    <!-- CSRF токен для AJAX запросов -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="profile-section">
+                <div class="profile-pic-container">
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Фото преподавателя" class="profile-pic" id="profilePic">
+                </div>
+                <div class="profile-name" id="profileName">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="{% url 'homework_list' %}" class="nav-btn">← Назад к заданиям</a>
+                <a href="{% url 'teacher_dashboard' %}" class="nav-btn">На главную</a>
+                <a href="{% url 'logout' %}" class="nav-btn" style="background: #dc3545; color: white;">Выйти</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="homework-detail-container">
+            <!-- Заголовок и основная информация -->
+            <div class="homework-header">
+                <div class="homework-title-section">
+                    <h1 class="homework-title">Домашнее задание #<span id="homeworkId">{{ homework.id }}</span></h1>
+                    <div class="homework-meta">
+                        <span class="status-badge status-{{ homework.status }}" id="statusBadge">
+                            {{ homework.get_status_display }}
+                        </span>
+                        <span class="priority-badge priority-{{ homework.priority }}" id="priorityBadge">
+                            {{ homework.get_priority_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="homework-actions">
+                    <button class="btn btn-primary" id="gradeBtn">Выставить оценку</button>
+                    {% if homework.attachments.exists %}
+                    <a href="{% url 'download_homework_zip' homework.id %}" class="btn btn-secondary" id="downloadBtn">
+                        Скачать работу (ZIP)
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Основная информация о задании -->
+            <div class="homework-info-grid">
+                <div class="info-card">
+                    <h3>Информация о студенте</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="info-label">ФИО:</span>
+                            <span class="info-value" id="studentName">{{ homework.student.full_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Группа:</span>
+                            <span class="info-value" id="studentGroup">
+                                {% if homework.student.group %}
+                                    {{ homework.student.group.name }}
+                                {% else %}
+                                    Не указана
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value" id="studentEmail">{{ homework.student.user.email }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Телефон:</span>
+                            <span class="info-value" id="studentPhone">
+                                {% if homework.student.phone %}
+                                    {{ homework.student.phone }}
+                                {% else %}
+                                    Не указан
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>Детали задания</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="info-label">Курс:</span>
+                            <span class="info-value" id="courseName">{{ homework.assignment.course.title }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Тип работы:</span>
+                            <span class="info-value" id="workType">{{ homework.assignment.get_assignment_type_display }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Тема:</span>
+                            <span class="info-value" id="workTopic">{{ homework.assignment.title }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Баллы:</span>
+                            <span class="info-value" id="maxPoints">{{ homework.assignment.max_points }} макс.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>Сроки выполнения</h3>
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="info-label">Выдано:</span>
+                            <span class="info-value" id="assignedDate">{{ homework.assignment.created_at|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Срок сдачи:</span>
+                            <span class="info-value" id="dueDate">{{ homework.assignment.due_date|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Сдано:</span>
+                            <span class="info-value" id="submittedDate">
+                                {% if homework.submitted_at %}
+                                    {{ homework.submitted_at|date:"d.m.Y H:i" }}
+                                {% else %}
+                                    Не сдано
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Статус:</span>
+                            <span class="info-value" id="submissionStatus">
+                                {% if homework.submitted_at %}
+                                    {% if homework.submitted_at <= homework.assignment.due_date %}
+                                        Сдано вовремя
+                                    {% else %}
+                                        Сдано с опозданием
+                                    {% endif %}
+                                {% else %}
+                                    Не сдано
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Работа студента -->
+            <div class="homework-content">
+                <div class="content-section">
+                    <h3>Работа студента</h3>
+                    <div class="submission-content">
+                        {% if homework.attachments.exists %}
+                        <div class="file-attachments">
+                            <h4>Прикрепленные файлы:</h4>
+                            <div class="file-list">
+                                {% for attachment in homework.attachments.all %}
+                                <div class="file-item">
+                                    <span class="file-icon">
+                                        {% if attachment.file_name|lower|slice:'-4:' == '.pdf' %}📄
+                                        {% elif attachment.file_name|lower|slice:'-5:' == '.docx' %}📝
+                                        {% elif attachment.file_name|lower|slice:'-4:' == '.zip' %}📦
+                                        {% elif attachment.file_name|lower|slice:'-4:' == '.jpg' or attachment.file_name|lower|slice:'-5:' == '.jpeg' or attachment.file_name|lower|slice:'-4:' == '.png' %}🖼️
+                                        {% else %}📎{% endif %}
+                                    </span>
+                                    <span class="file-name">{{ attachment.file_name }}</span>
+                                    <span class="file-size">({{ attachment.get_file_size }})</span>
+                                    <a href="{% url 'download_attachment' attachment.id %}" class="file-download">Скачать</a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if homework.text_content %}
+                        <div class="text-submission">
+                            <h4>Текстовый ответ:</h4>
+                            <div class="submission-text" id="submissionText">
+                                {{ homework.text_content|linebreaks }}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-submission">
+                            <h4>Текстовый ответ:</h4>
+                            <div class="submission-text empty">
+                                Студент не предоставил текстовый ответ
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Оценка и комментарии -->
+                <div class="grading-section">
+                    <h3>Оценка работы</h3>
+                    <div class="grading-form">
+                        {% if homework.grade %}
+                        <!-- Если оценка уже выставлена -->
+                        <div class="grade-display">
+                            <div class="grade-info">
+                                <div class="grade-value">
+                                    <strong>Оценка:</strong> {{ homework.grade.grade_value }} 
+                                    ({{ homework.grade.grade_with_text }})
+                                </div>
+                                <div class="points-value">
+                                    <strong>Баллы:</strong> {{ homework.grade.points }}/{{ homework.assignment.max_points }}
+                                </div>
+                                <div class="grade-teacher">
+                                    <strong>Проверил:</strong> {{ homework.grade.teacher.get_full_name }}
+                                </div>
+                                <div class="grade-date">
+                                    <strong>Дата проверки:</strong> {{ homework.grade.graded_at|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                            
+                            {% if homework.grade.comment %}
+                            <div class="teacher-comment">
+                                <h4>Комментарий преподавателя:</h4>
+                                <div class="comment-content">{{ homework.grade.comment|linebreaks }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="grading-actions">
+                                <button class="btn btn-secondary" id="editGradeBtn">Изменить оценку</button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- Форма для оценки -->
+                        <form id="gradingForm" method="POST" action="{% url 'grade_homework' homework.id %}">
+                            {% csrf_token %}
+                            <div class="grade-input">
+                                <label for="grade_value">Оценка:</label>
+                                <div class="grade-selector">
+                                    <select id="grade_value" name="grade_value" class="form-control" required>
+                                        <option value="">Выберите оценку</option>
+                                        {% for value, label in grade_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="max-grade">из 5</span>
+                                </div>
+                            </div>
+
+                            <div class="points-input">
+                                <label for="points">Баллы:</label>
+                                <div class="points-selector">
+                                    <input type="number" id="points" name="points" class="form-control" 
+                                           min="0" max="{{ homework.assignment.max_points }}" 
+                                           value="0" placeholder="0" required>
+                                    <span class="max-points">из {{ homework.assignment.max_points }}</span>
+                                </div>
+                            </div>
+
+                            <div class="comments-input">
+                                <label for="comment">Комментарий преподавателя:</label>
+                                <textarea id="comment" name="comment" class="form-control" rows="6" 
+                                          placeholder="Введите ваш комментарий к работе..."></textarea>
+                            </div>
+
+                            <div class="common-comments">
+                                <label>Быстрые комментарии:</label>
+                                <div class="quick-comments">
+                                    <button type="button" class="quick-comment-btn" data-comment="Отличная работа!">Отличная работа!</button>
+                                    <button type="button" class="quick-comment-btn" data-comment="Хорошо, но есть недочеты">Хорошо, но есть недочеты</button>
+                                    <button type="button" class="quick-comment-btn" data-comment="Нужно доработать">Нужно доработать</button>
+                                    <button type="button" class="quick-comment-btn" data-comment="Обратите внимание на оформление">Обратите внимание на оформление</button>
+                                </div>
+                            </div>
+
+                            <div class="grading-actions">
+                                <button type="submit" class="btn btn-success" id="submitGrade">Сохранить оценку</button>
+                                <button type="button" class="btn btn-outline" id="requestRevisionBtn">Запросить доработку</button>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- История проверок -->
+                <div class="history-section">
+                    <h3>История</h3>
+                    <div class="history-timeline">
+                        <div class="history-item">
+                            <div class="history-date">{{ homework.created_at|date:"d.m.Y H:i" }}</div>
+                            <div class="history-action">Задание создано</div>
+                        </div>
+                        
+                        {% if homework.submitted_at %}
+                        <div class="history-item">
+                            <div class="history-date">{{ homework.submitted_at|date:"d.m.Y H:i" }}</div>
+                            <div class="history-action">Студент отправил работу</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if homework.grade %}
+                        <div class="history-item">
+                            <div class="history-date">{{ homework.grade.graded_at|date:"d.m.Y H:i" }}</div>
+                            <div class="history-action">
+                                Преподаватель {{ homework.grade.teacher.get_full_name }} выставил оценку
+                                {% if homework.grade.comment %}
+                                <br><small>{{ homework.grade.comment|truncatechars:100 }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно для запроса доработки -->
+    <div id="revisionModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Запрос доработки</h3>
+            <textarea id="revisionComment" class="form-control" rows="6" placeholder="Укажите, что нужно исправить в работе..."></textarea>
+            <div class="modal-actions">
+                <button id="submitRevision" class="btn btn-primary">Отправить запрос</button>
+                <button id="cancelRevision" class="btn btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сообщения об успехе/ошибке -->
+    <div id="messageToast" class="toast hidden">
+        <div class="toast-content" id="toastMessage"></div>
+    </div>
+
+    <!-- Подключение JavaScript -->
+    <script src="{% static 'js/homework-detail.js' %}"></script>
+    <script>
+        // Глобальные переменные для использования в JS
+        const HOMEWORK_ID = {{ homework.id }};
+        const MAX_POINTS = {{ homework.assignment.max_points }};
+        const CSRF_TOKEN = "{{ csrf_token }}";
+        
+        // CSRF токен для AJAX запросов
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+    </script>
+</body>
+</html>

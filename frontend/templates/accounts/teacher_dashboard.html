@@ -8,6 +8,124 @@
     <!-- Загрузка статических файлов Django -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        /* Дополнительные стили для таблицы */
+        .homework-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
+            gap: 10px;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .homework-row:hover {
+            background-color: var(--light-bg, #f8f9fa);
+        }
+        
+        .homework-row-header {
+            font-weight: bold;
+            background-color: var(--primary-color, #2c3e50);
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-submitted {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .status-graded {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-revision {
+            background-color: #fd7e14;
+            color: white;
+        }
+        
+        .status-assigned {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .comment-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .comment-btn:hover {
+            background-color: var(--light-primary, #e3f2fd);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        #search-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--light-bg, #f8f9fa);
+            border-radius: 8px;
+            border: 1px solid var(--border-color, #e0e0e0);
+        }
+        
+        .search-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .search-group label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-secondary, #666);
+        }
+        
+        .search-group input,
+        .search-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        #search-btn {
+            align-self: flex-end;
+            padding: 8px 20px;
+            background-color: var(--primary-color, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #search-btn:hover {
+            background-color: var(--primary-dark, #1a252f);
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -72,7 +190,7 @@
                     <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
                     <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i" }}</p>
                     <p><strong>Курсов:</strong> {{ courses.count }}</p>
-                    <p><strong>Заданий на проверку:</strong> {{ pending_submissions.count }}</p>
+                    <p><strong>Заданий на проверку:</strong> {{ pending_submissions_count }}</p>
                 </div>
             </div>
         </section>
@@ -115,6 +233,12 @@
                         <div class="course-notifications">{{ course.pending_count }}</div>
                     </div>
                     {% empty %}
+                    <div class="course-card">
+                        <div class="course-header">Нет курсов</div>
+                        <div class="course-details">
+                            <div class="course-detail">Создайте свой первый курс</div>
+                        </div>
+                    </div>
                     {% endfor %}
                 </div>
             </section>
@@ -140,7 +264,7 @@
                     <select id="search-course">
                         <option value="">Все курсы</option>
                         {% for course in courses %}
-                        <option value="{{ course.id }}">{{ course.title }}</option>
+                        <option value="{{ course.title }}">{{ course.title }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -162,46 +286,51 @@
                     </div>
                     
                     <!-- Реальные данные из базы -->
-                    {% for submission in submissions %}
+                    {% for homework in homeworks %}
                     <div class="homework-row">
                         <div>
-                            {% if submission.student.get_full_name %}
-                                {{ submission.student.get_full_name }}
+                            {% if homework.student.full_name %}
+                                {{ homework.student.full_name }}
                             {% else %}
-                                {{ submission.student.username }}
+                                {{ homework.student.user.username }}
                             {% endif %}
                         </div>
-                        <div>{{ submission.assignment.course.title }}</div>
-                        <div>{{ submission.assignment.title }}</div>
-                        <div>{{ submission.assignment.due_date|date:"d.m.Y" }}</div>
+                        <div>{{ homework.assignment.course.title }}</div>
+                        <div>{{ homework.assignment.title }}</div>
+                        <div>{{ homework.assignment.due_date|date:"d.m.Y" }}</div>
                         <div>
-                            <span class="status-badge status-{{ submission.status }}">
-                                {{ submission.get_status_display }}
+                            <span class="status-badge status-{{ homework.status }}">
+                                {{ homework.get_status_display }}
                             </span>
                         </div>
                         <div>
-                            {% if submission.grade %}
-                                {{ submission.grade.score }}/{{ submission.assignment.max_score }}
+                            {% if homework.grade %}
+                                {{ homework.grade.points }}/{{ homework.assignment.max_points }}
                             {% else %}
                                 -
                             {% endif %}
                         </div>
                         <div>
-                            <a href="{% url 'homework_detail' submission.id %}" class="comment-btn" title="Просмотреть задание">        
+                            {% if homework.id %}
+                            <a href="{% url 'homework_detail' homework.id %}" class="comment-btn" title="Просмотреть задание">        
                                 👁️
                             </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </div>
                     </div>
                     {% empty %}
                     <div class="no-results">
                         <p>Нет заданий для проверки</p>
+                        <p><small>Все работы проверены или студенты еще не сдали задания</small></p>
                     </div>
                     {% endfor %}
                 </div>
             </section>
         </section>
 
-        <!-- Секция наград -->
+        <!-- Секция наград (оставляем как есть) -->
         <section class="rewards">
             <div class="rewards-header">
                 <h2 class="rewards-title">Мои награды</h2>
@@ -218,17 +347,17 @@
                     <div class="reward-value">+50 баллов</div>
                 </div>
                 
-                <div class="reward-card {% if graded_submissions.count >= 10 %}achieved{% endif %}">
+                <div class="reward-card {% if graded_submissions_count >= 10 %}achieved{% endif %}">
                     <div class="reward-icon">⭐</div>
                     <div class="reward-name">Активный преподаватель</div>
                     <div class="reward-description">Проверьте 10 домашних заданий</div>
                     <div class="reward-progress">
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: {% widthratio graded_submissions.count 10 100 %}%"></div>
+                            <div class="progress-fill" style="width: {% widthratio graded_submissions_count 10 100 %}%"></div>
                         </div>
                     </div>
                     <div class="reward-stats">
-                        <span>{{ graded_submissions.count }}/10</span>
+                        <span>{{ graded_submissions_count }}/10</span>
                         <span>+30 баллов</span>
                     </div>
                 </div>
@@ -259,7 +388,7 @@
                         <div class="summary-value" id="achievedRewards">
                             {% with achieved=0 %}
                                 {% if courses.count > 0 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
-                                {% if graded_submissions.count >= 10 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
+                                {% if graded_submissions_count >= 10 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
                                 {% if courses.count >= 3 %}{% widthratio achieved|add:1 1 1 %}{% endif %}
                                 {{ achieved }}
                             {% endwith %}
@@ -274,7 +403,7 @@
                     </div>
                     <div class="summary-item">
                         <div class="summary-value" id="nextReward">
-                            {% if courses.count == 0 %}Первый курс{% elif graded_submissions.count < 10 %}Активный преподаватель{% elif courses.count < 3 %}Эксперт{% else %}Все получены!{% endif %}
+                            {% if courses.count == 0 %}Первый курс{% elif graded_submissions_count < 10 %}Активный преподаватель{% elif courses.count < 3 %}Эксперт{% else %}Все получены!{% endif %}
                         </div>
                         <div class="summary-label">Следующая награда</div>
                     </div>
@@ -289,24 +418,91 @@
 
     <!-- JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
-    
-    <!-- <script>
+    <script>
+        // Добавляем функциональность фильтрации
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация курсов
+            const searchName = document.getElementById('search-name');
+            const searchDeadline = document.getElementById('search-deadline');
+            const searchCourse = document.getElementById('search-course');
+            const searchBtn = document.getElementById('search-btn');
+            const homeworkRows = document.querySelectorAll('.homework-row:not(.homework-row-header)');
+            
+            function filterHomework() {
+                const nameFilter = searchName.value.toLowerCase();
+                const dateFilter = searchDeadline.value;
+                const courseFilter = searchCourse.value.toLowerCase();
+                
+                homeworkRows.forEach(row => {
+                    const studentCell = row.children[0].textContent.toLowerCase();
+                    const courseCell = row.children[1].textContent.toLowerCase();
+                    const dateCell = row.children[3].textContent;
+                    
+                    let show = true;
+                    
+                    // Фильтр по имени
+                    if (nameFilter && !studentCell.includes(nameFilter)) {
+                        show = false;
+                    }
+                    
+                    // Фильтр по курсу
+                    if (courseFilter && !courseCell.includes(courseFilter)) {
+                        show = false;
+                    }
+                    
+                    // Фильтр по дате
+                    if (dateFilter) {
+                        const [day, month, year] = dateCell.split('.');
+                        const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        if (formattedDate !== dateFilter) {
+                            show = false;
+                        }
+                    }
+                    
+                    row.style.display = show ? '' : 'none';
+                });
+            }
+            
+            // Фильтрация при нажатии кнопки
+            searchBtn.addEventListener('click', filterHomework);
+            
+            // Фильтрация при нажатии Enter в поле поиска по имени
+            searchName.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterHomework();
+                }
+            });
+            
+            // Навигация по курсам (если нужно)
+            const prevArrow = document.getElementById('prevArrow');
+            const nextArrow = document.getElementById('nextArrow');
+            const coursesContainer = document.getElementById('coursesContainer');
+            
+            if (prevArrow && nextArrow && coursesContainer) {
+                prevArrow.addEventListener('click', function() {
+                    coursesContainer.scrollBy({ left: -300, behavior: 'smooth' });
+                });
+                
+                nextArrow.addEventListener('click', function() {
+                    coursesContainer.scrollBy({ left: 300, behavior: 'smooth' });
+                });
+            }
+            
+            // Фильтрация курсов по типу
             const courseButtons = document.querySelectorAll('.course-btn');
             const courseCards = document.querySelectorAll('.course-card');
             
             courseButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    const type = this.getAttribute('data-type');
-                    
-                    // Обновляем активную кнопку
+                    // Убираем активный класс со всех кнопок
                     courseButtons.forEach(btn => btn.classList.remove('active'));
+                    // Добавляем активный класс текущей кнопке
                     this.classList.add('active');
+                    
+                    const type = this.getAttribute('data-type');
                     
                     // Показываем/скрываем курсы
                     courseCards.forEach(card => {
-                        if (type === 'all' || card.getAttribute('data-type') === type) {
+                        if (type === 'active' || card.getAttribute('data-type') === type) {
                             card.style.display = 'block';
                         } else {
                             card.style.display = 'none';
@@ -314,39 +510,7 @@
                     });
                 });
             });
-            
-            // Навигация по курсам
-            const prevArrow = document.getElementById('prevArrow');
-            const nextArrow = document.getElementById('nextArrow');
-            const coursesContainer = document.getElementById('coursesContainer');
-            
-            if (prevArrow && nextArrow && coursesContainer) {
-                const scrollAmount = 300;
-                
-                prevArrow.addEventListener('click', function() {
-                    coursesContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-                });
-                
-                nextArrow.addEventListener('click', function() {
-                    coursesContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-                });
-            }
-            
-            
-            // Активация таблицы результатов
-            const resultsTable = document.getElementById('results-table');
-            if (resultsTable) {
-                resultsTable.classList.remove('hidden');
-            }
-            
-            // Активация панели курсов
-            const coursePanel = document.getElementById('coursePanel');
-            if (coursePanel) {
-                coursePanel.classList.add('active');
-            }
         });
-    </script> -->
-
-    
+    </script>
 </body>
 </html>

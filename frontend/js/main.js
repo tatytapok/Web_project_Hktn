@@ -330,76 +330,76 @@ function navigateToHomeworkPage(homeworkId) {
         }
     }
 
-    function getMockHomeworks(name, deadline, course) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const allHomeworks = [
-                    {
-                        id: 1,
-                        studentName: "Иванов Алексей",
-                        course: "Математика для начинающих",
-                        type: "Тест",
-                        requiredDate: "2025-01-15",
-                        actualDate: "2025-01-14",
-                        grade: "5",
-                        comment: "Отличная работа!"
-                    },
-                    {
-                        id: 2,
-                        studentName: "Петрова Мария",
-                        course: "Основы программирования",
-                        type: "Проект",
-                        requiredDate: "2025-01-20",
-                        actualDate: null,
-                        grade: null,
-                        comment: ""
-                    },
-                    {
-                        id: 3,
-                        studentName: "Сидоров Иван",
-                        course: "Физика: механика",
-                        type: "Лабораторная",
-                        requiredDate: "2025-01-10",
-                        actualDate: "2025-01-11",
-                        grade: "4",
-                        comment: "Небольшие ошибки в расчетах"
-                    },
-                    {
-                        id: 4,
-                        studentName: "Кузнецова Анна",
-                        course: "Английский язык: начальный уровень",
-                        type: "Эссе",
-                        requiredDate: "2025-01-18",
-                        actualDate: "2025-01-17",
-                        grade: "5",
-                        comment: "Отличный словарный запас"
-                    }
-                ];
+    // function getMockHomeworks(name, deadline, course) {
+    //     return new Promise((resolve) => {
+    //         setTimeout(() => {
+    //             const allHomeworks = [
+    //                 {
+    //                     id: 1,
+    //                     studentName: "Иванов Алексей",
+    //                     course: "Математика для начинающих",
+    //                     type: "Тест",
+    //                     requiredDate: "2025-01-15",
+    //                     actualDate: "2025-01-14",
+    //                     grade: "5",
+    //                     comment: "Отличная работа!"
+    //                 },
+    //                 {
+    //                     id: 2,
+    //                     studentName: "Петрова Мария",
+    //                     course: "Основы программирования",
+    //                     type: "Проект",
+    //                     requiredDate: "2025-01-20",
+    //                     actualDate: null,
+    //                     grade: null,
+    //                     comment: ""
+    //                 },
+    //                 {
+    //                     id: 3,
+    //                     studentName: "Сидоров Иван",
+    //                     course: "Физика: механика",
+    //                     type: "Лабораторная",
+    //                     requiredDate: "2025-01-10",
+    //                     actualDate: "2025-01-11",
+    //                     grade: "4",
+    //                     comment: "Небольшие ошибки в расчетах"
+    //                 },
+    //                 {
+    //                     id: 4,
+    //                     studentName: "Кузнецова Анна",
+    //                     course: "Английский язык: начальный уровень",
+    //                     type: "Эссе",
+    //                     requiredDate: "2025-01-18",
+    //                     actualDate: "2025-01-17",
+    //                     grade: "5",
+    //                     comment: "Отличный словарный запас"
+    //                 }
+    //             ];
 
-                let filtered = allHomeworks;
+    //             let filtered = allHomeworks;
 
-                if (name) {
-                    filtered = filtered.filter(hw => 
-                        hw.studentName.toLowerCase().includes(name.toLowerCase())
-                    );
-                }
+    //             if (name) {
+    //                 filtered = filtered.filter(hw => 
+    //                     hw.studentName.toLowerCase().includes(name.toLowerCase())
+    //                 );
+    //             }
 
-                if (course) {
-                    filtered = filtered.filter(hw => 
-                        hw.course.toLowerCase().includes(
-                            searchCourse.options[searchCourse.selectedIndex].text.toLowerCase()
-                        )
-                    );
-                }
+    //             if (course) {
+    //                 filtered = filtered.filter(hw => 
+    //                     hw.course.toLowerCase().includes(
+    //                         searchCourse.options[searchCourse.selectedIndex].text.toLowerCase()
+    //                     )
+    //                 );
+    //             }
 
-                if (deadline) {
-                    filtered = filtered.filter(hw => hw.requiredDate === deadline);
-                }
+    //             if (deadline) {
+    //                 filtered = filtered.filter(hw => hw.requiredDate === deadline);
+    //             }
 
-                resolve(filtered);
-            }, 500);
-        });
-    }
+    //             resolve(filtered);
+    //         }, 500);
+    //     });
+    // }
 
     async function saveComment() {
         const id = commentModal.dataset.id;

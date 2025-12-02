@@ -1,152 +1,212 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Получаем ID домашнего задания из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const homeworkId = urlParams.get('id');
-    
     // Элементы DOM
     const gradeBtn = document.getElementById('gradeBtn');
     const downloadBtn = document.getElementById('downloadBtn');
-    const submitGradeBtn = document.getElementById('submitGrade');
-    const saveDraftBtn = document.getElementById('saveDraft');
-    const requestRevisionBtn = document.getElementById('requestRevision');
+    const gradingForm = document.getElementById('gradingForm');
+    const requestRevisionBtn = document.getElementById('requestRevisionBtn');
     const quickCommentBtns = document.querySelectorAll('.quick-comment-btn');
-    const teacherComment = document.getElementById('teacherComment');
-
-    // Загрузка данных домашнего задания
-    function loadHomeworkData() {
-        // В реальном приложении здесь будет запрос к API
-        // Сейчас используем mock-данные
-        const homeworkData = {
-            id: homeworkId,
-            studentName: "Иванов Алексей",
-            studentGroup: "МАТ-21-1",
-            studentEmail: "alexey.ivanov@edu.ru",
-            studentPhone: "+7 (900) 123-45-67",
-            courseName: "Математика для начинающих",
-            workType: "Тест",
-            workTopic: "Линейные уравнения",
-            maxPoints: 20,
-            assignedDate: "10.01.2024",
-            dueDate: "15.01.2024",
-            submittedDate: "14.01.2024",
-            submissionStatus: "Сдано вовремя",
-            currentGrade: null,
-            currentPoints: null,
-            teacherComment: ""
-        };
-
-        // Заполняем данные на странице
-        document.getElementById('homeworkId').textContent = homeworkId;
-        document.getElementById('studentName').textContent = homeworkData.studentName;
-        document.getElementById('studentGroup').textContent = homeworkData.studentGroup;
-        document.getElementById('studentEmail').textContent = homeworkData.studentEmail;
-        document.getElementById('studentPhone').textContent = homeworkData.studentPhone;
-        document.getElementById('courseName').textContent = homeworkData.courseName;
-        document.getElementById('workType').textContent = homeworkData.workType;
-        document.getElementById('workTopic').textContent = homeworkData.workTopic;
-        document.getElementById('maxPoints').textContent = `${homeworkData.maxPoints} макс.`;
-        document.getElementById('assignedDate').textContent = homeworkData.assignedDate;
-        document.getElementById('dueDate').textContent = homeworkData.dueDate;
-        document.getElementById('submittedDate').textContent = homeworkData.submittedDate;
-        document.getElementById('submissionStatus').textContent = homeworkData.submissionStatus;
-
-        // Если есть предыдущая оценка, заполняем поля
-        if (homeworkData.currentGrade) {
-            document.getElementById('grade').value = homeworkData.currentGrade;
-        }
-        if (homeworkData.currentPoints) {
-            document.getElementById('points').value = homeworkData.currentPoints;
-        }
-        if (homeworkData.teacherComment) {
-            teacherComment.value = homeworkData.teacherComment;
-        }
-    }
+    const editGradeBtn = document.getElementById('editGradeBtn');
+    
+    // Элементы модального окна доработки
+    const revisionModal = document.getElementById('revisionModal');
+    const submitRevisionBtn = document.getElementById('submitRevision');
+    const cancelRevisionBtn = document.getElementById('cancelRevision');
+    const revisionComment = document.getElementById('revisionComment');
 
     // Обработчики событий
-    gradeBtn.addEventListener('click', function() {
-        // Прокрутка к секции оценки
-        document.querySelector('.grading-section').scrollIntoView({ 
-            behavior: 'smooth' 
+    if (gradeBtn) {
+        gradeBtn.addEventListener('click', function() {
+            // Прокрутка к секции оценки
+            document.querySelector('.grading-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
         });
-    });
+    }
 
-    downloadBtn.addEventListener('click', function() {
-        // Имитация скачивания файлов
-        alert('Начинается скачивание всех файлов задания...');
-        // В реальном приложении здесь будет логика скачивания
-    });
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            // Скачивание начнется автоматически по ссылке
+            console.log('Начинается скачивание архива с работой...');
+        });
+    }
 
     // Быстрые комментарии
-    quickCommentBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const comment = this.getAttribute('data-comment');
-            if (teacherComment.value) {
-                teacherComment.value += '\n' + comment;
-            } else {
-                teacherComment.value = comment;
+    if (quickCommentBtns.length > 0) {
+        quickCommentBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const comment = this.getAttribute('data-comment');
+                const commentField = document.getElementById('comment');
+                
+                if (commentField) {
+                    if (commentField.value) {
+                        commentField.value += '\n' + comment;
+                    } else {
+                        commentField.value = comment;
+                    }
+                }
+            });
+        });
+    }
+
+    // Обработка формы оценки (если оценка еще не выставлена)
+    if (gradingForm) {
+        gradingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const gradeValue = formData.get('grade_value');
+            const points = parseInt(formData.get('points'));
+            const comment = formData.get('comment');
+            
+            if (!gradeValue) {
+                showToast('Пожалуйста, выберите оценку', 'error');
+                return;
+            }
+            
+            if (points > MAX_POINTS) {
+                showToast(`Баллы не могут превышать ${MAX_POINTS}`, 'error');
+                return;
+            }
+            
+            // Отправка данных на сервер
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Оценка успешно сохранена!', 'success');
+                    // Обновляем страницу через 1.5 секунды
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Ошибка при сохранении оценки', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Ошибка при отправке данных', 'error');
+            });
+        });
+    }
+
+    // Кнопка "Запросить доработку"
+    if (requestRevisionBtn) {
+        requestRevisionBtn.addEventListener('click', function() {
+            if (revisionModal) {
+                revisionModal.classList.remove('hidden');
             }
         });
-    });
+    }
 
-    // Сохранение оценки
-    submitGradeBtn.addEventListener('click', function() {
-        const grade = document.getElementById('grade').value;
-        const points = document.getElementById('points').value;
-        const comment = teacherComment.value;
+    // Кнопка "Изменить оценку" (если оценка уже выставлена)
+    if (editGradeBtn) {
+        editGradeBtn.addEventListener('click', function() {
+            // В реальном приложении здесь может быть переход к редактированию
+            // Пока просто показываем сообщение
+            showToast('Функция редактирования оценки будет доступна в следующей версии', 'info');
+        });
+    }
 
-        if (!grade) {
-            alert('Пожалуйста, выберите оценку');
-            return;
-        }
-
-        // Сохранение данных (в реальном приложении - запрос к API)
-        console.log('Сохранение оценки:', { grade, points, comment });
-        
-        alert('Оценка успешно сохранена!');
-        
-        // Обновление статуса на странице
-        document.getElementById('statusBadge').textContent = 'Проверено';
-        document.getElementById('statusBadge').style.background = 'var(--success-color)';
-    });
-
-    // Сохранение черновика
-    saveDraftBtn.addEventListener('click', function() {
-        const grade = document.getElementById('grade').value;
-        const points = document.getElementById('points').value;
-        const comment = teacherComment.value;
-
-        // Сохранение черновика
-        console.log('Сохранение черновика:', { grade, points, comment });
-        alert('Черновик сохранен!');
-    });
-
-    // Запрос доработки
-    requestRevisionBtn.addEventListener('click', function() {
-        const comment = teacherComment.value;
-        
-        if (!comment) {
-            alert('Пожалуйста, укажите комментарий с замечаниями для доработки');
-            return;
-        }
-
-        if (confirm('Отправить запрос на доработку задания?')) {
-            console.log('Запрос доработки:', { comment });
-            alert('Запрос на доработку отправлен студенту!');
+    // Модальное окно запроса доработки
+    if (submitRevisionBtn) {
+        submitRevisionBtn.addEventListener('click', function() {
+            const comment = revisionComment.value.trim();
             
-            // Обновление статуса
-            document.getElementById('statusBadge').textContent = 'На доработке';
-            document.getElementById('statusBadge').style.background = 'var(--sand)';
-        }
-    });
+            if (!comment) {
+                showToast('Пожалуйста, укажите комментарий с замечаниями', 'error');
+                return;
+            }
+            
+            // Отправка запроса на доработку
+            fetch(`/accounts/homework/${HOMEWORK_ID}/request-revision/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'comment': comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Запрос на доработку отправлен студенту!', 'success');
+                    revisionModal.classList.add('hidden');
+                    revisionComment.value = '';
+                    
+                    // Обновляем страницу через 1.5 секунды
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Ошибка при отправке запроса', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Ошибка при отправке данных', 'error');
+            });
+        });
+    }
 
-    // Скачивание отдельных файлов
+    if (cancelRevisionBtn) {
+        cancelRevisionBtn.addEventListener('click', function() {
+            if (revisionModal) {
+                revisionModal.classList.add('hidden');
+                revisionComment.value = '';
+            }
+        });
+    }
+
+    // Закрытие модального окна при клике вне его
+    if (revisionModal) {
+        revisionModal.addEventListener('click', function(e) {
+            if (e.target === revisionModal) {
+                revisionModal.classList.add('hidden');
+                revisionComment.value = '';
+            }
+        });
+    }
+
+    // Функция показа сообщений
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('messageToast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        if (!toast || !toastMessage) return;
+        
+        // Устанавливаем цвет в зависимости от типа
+        const colors = {
+            'success': '#28a745',
+            'error': '#dc3545',
+            'info': '#17a2b8',
+            'warning': '#ffc107'
+        };
+        
+        toast.style.backgroundColor = colors[type] || colors.info;
+        toastMessage.textContent = message;
+        toast.classList.remove('hidden');
+        
+        // Автоматическое скрытие через 3 секунды
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 3000);
+    }
+
+    // Скачивание отдельных файлов (если есть на странице)
     document.querySelectorAll('.file-download').forEach(btn => {
         btn.addEventListener('click', function() {
             const fileName = this.closest('.file-item').querySelector('.file-name').textContent;
-            alert(`Начинается скачивание файла: ${fileName}`);
+            console.log(`Скачивание файла: ${fileName}`);
+            // Файл скачается автоматически по ссылке
         });
     });
-
-    // Инициализация
-    loadHomeworkData();
 });
