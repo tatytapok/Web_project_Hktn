@@ -200,9 +200,16 @@ class Grade(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'groups__name': 'Teacher'},verbose_name='Преподаватель')
     grade_value = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
-        verbose_name='Оценка'
+        verbose_name='Оценка',
+        null=True,  # Добавляем
+        blank=True  # Добавляем
     )
-    points = models.IntegerField(verbose_name='Баллы')
+    points = models.IntegerField(
+        verbose_name='Баллы',
+        null=True,  # Добавляем
+        blank=True  # Добавляем
+    )
+
     comment = models.TextField(blank=True, verbose_name='Комментарий')
     is_revision_request = models.BooleanField(default=False, verbose_name='Запрос доработки')
     graded_at = models.DateTimeField(auto_now_add=True)
@@ -212,18 +219,28 @@ class Grade(models.Model):
         verbose_name_plural = 'Оценки'
     
     def __str__(self):
-        return f"{self.homework} - {self.grade_value}"
+        if self.grade_value:
+            return f"{self.homework} - {self.grade_value}"
+        elif self.is_revision_request:
+            return f"{self.homework} - Запрос доработки"
+        else:
+            return f"{self.homework} - Без оценки"
     
     @property
     def grade_with_text(self):
-        grades_text = {
-            5: 'Отлично',
-            4: 'Хорошо',
-            3: 'Удовлетворительно',
-            2: 'Неудовлетворительно',
-            1: 'Не сдано',
-        }
-        return f"{self.grade_value} ({grades_text.get(self.grade_value, '')})"
+        if self.grade_value:
+            grades_text = {
+                5: 'Отлично',
+                4: 'Хорошо',
+                3: 'Удовлетворительно',
+                2: 'Неудовлетворительно',
+                1: 'Не сдано',
+            }
+            return f"{self.grade_value} ({grades_text.get(self.grade_value, '')})"
+        elif self.is_revision_request:
+            return "На доработке"
+        else:
+            return "Без оценки"
 
 class HomeworkHistory(models.Model):
     """История изменений домашней работы (для версионирования)"""

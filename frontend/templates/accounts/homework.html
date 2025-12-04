@@ -12,6 +12,38 @@
     
     <!-- CSRF токен для AJAX запросов -->
     <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <style>
+        /* Стили для режима редактирования */
+        .grade-display-mode {
+            display: block;
+        }
+        
+        .edit-grade-mode {
+            display: none;
+        }
+        
+        .grade-display-mode.hidden {
+            display: none;
+        }
+        
+        .edit-grade-mode.active {
+            display: block;
+        }
+        
+        .cancel-edit-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancel-edit-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -49,7 +81,9 @@
                     </div>
                 </div>
                 <div class="homework-actions">
-                    <button class="btn btn-primary" id="gradeBtn">Выставить оценку</button>
+                    <button class="btn btn-primary" id="gradeBtn">
+                        {% if homework.grade %}Изменить оценку{% else %}Выставить оценку{% endif %}
+                    </button>
                     {% if homework.attachments.exists %}
                     <a href="{% url 'download_homework_zip' homework.id %}" class="btn btn-secondary" id="downloadBtn">
                         Скачать работу (ZIP)
@@ -203,17 +237,27 @@
                 <!-- Оценка и комментарии -->
                 <div class="grading-section">
                     <h3>Оценка работы</h3>
-                    <div class="grading-form">
+                    
+                    <!-- Режим отображения оценки (показывается, если оценка есть) -->
+                    <div class="grade-display-mode {% if not homework.grade %}hidden{% endif %}" id="gradeDisplayMode">
                         {% if homework.grade %}
-                        <!-- Если оценка уже выставлена -->
                         <div class="grade-display">
                             <div class="grade-info">
                                 <div class="grade-value">
-                                    <strong>Оценка:</strong> {{ homework.grade.grade_value }} 
-                                    ({{ homework.grade.grade_with_text }})
+                                    <strong>Оценка:</strong>
+                                    {% if homework.grade.grade_value %}
+                                        {{ homework.grade.grade_value }} ({{ homework.grade.grade_with_text }})
+                                    {% else %}
+                                        Не выставлена
+                                    {% endif %}
                                 </div>
                                 <div class="points-value">
-                                    <strong>Баллы:</strong> {{ homework.grade.points }}/{{ homework.assignment.max_points }}
+                                    <strong>Баллы:</strong> 
+                                    {% if homework.grade.points %}
+                                        {{ homework.grade.points }}/{{ homework.assignment.max_points }}
+                                    {% else %}
+                                        Не выставлены
+                                    {% endif %}
                                 </div>
                                 <div class="grade-teacher">
                                     <strong>Проверил:</strong> {{ homework.grade.teacher.get_full_name }}
@@ -223,7 +267,43 @@
                                 </div>
                             </div>
                             
-                            {% if homework.grade.comment %}
+                            <!-- БЛОК ДЛЯ ЗАПРОСА ДОРАБОТКИ -->
+                            {% if homework.grade.is_revision_request %}
+                            <div class="revision-request"
+                                class="revision-request" style="
+                                background-color: #fff3cd;
+                                border: 1px solid #ffeaa7;
+                                border-radius: 4px;
+                                padding: 15px;
+                                margin: 15px 0;
+                            ">
+                                <h4 style="
+                                    color: #856404;
+                                    margin-top: 0;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                ">
+                                    <span style="
+                                        background: #856404;
+                                        color: white;
+                                        width: 24px;
+                                        height: 24px;
+                                        border-radius: 50%;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 14px;
+                                    ">!</span>>
+                                    Запрос доработки
+                                </h4>
+                                <div class="revision-comment">{{ homework.grade.comment|linebreaks }}</div>
+                                <div class="revision-date">
+                                    <small>Запрошено: {{ homework.grade.graded_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </div>
+
+                            {% elif homework.grade.comment %}
                             <div class="teacher-comment">
                                 <h4>Комментарий преподавателя:</h4>
                                 <div class="comment-content">{{ homework.grade.comment|linebreaks }}</div>
@@ -235,16 +315,28 @@
                             </div>
                         </div>
                         {% else %}
-                        <!-- Форма для оценки -->
-                        <form id="gradingForm" method="POST" action="{% url 'grade_homework' homework.id %}">
+                        <div class="no-grade-message">
+                            <p>Оценка еще не выставлена.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Режим редактирования/создания оценки -->
+                    <div class="edit-grade-mode {% if not homework.grade %}active{% endif %}" id="editGradeMode">
+                        <form method="POST" action="{% url 'grade_homework' homework.id %}" id="gradingForm">
                             {% csrf_token %}
+                            <input type="hidden" name="homework_id" value="{{ homework.id }}">
+                            
                             <div class="grade-input">
                                 <label for="grade_value">Оценка:</label>
                                 <div class="grade-selector">
                                     <select id="grade_value" name="grade_value" class="form-control" required>
                                         <option value="">Выберите оценку</option>
                                         {% for value, label in grade_choices %}
-                                        <option value="{{ value }}">{{ label }}</option>
+                                        <option value="{{ value }}" 
+                                            {% if homework.grade and homework.grade.grade_value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
                                         {% endfor %}
                                     </select>
                                     <span class="max-grade">из 5</span>
@@ -256,7 +348,8 @@
                                 <div class="points-selector">
                                     <input type="number" id="points" name="points" class="form-control" 
                                            min="0" max="{{ homework.assignment.max_points }}" 
-                                           value="0" placeholder="0" required>
+                                           value="{% if homework.grade %}{{ homework.grade.points }}{% else %}0{% endif %}" 
+                                           placeholder="0" required>
                                     <span class="max-points">из {{ homework.assignment.max_points }}</span>
                                 </div>
                             </div>
@@ -264,7 +357,7 @@
                             <div class="comments-input">
                                 <label for="comment">Комментарий преподавателя:</label>
                                 <textarea id="comment" name="comment" class="form-control" rows="6" 
-                                          placeholder="Введите ваш комментарий к работе..."></textarea>
+                                          placeholder="Введите ваш комментарий к работе...">{% if homework.grade %}{{ homework.grade.comment }}{% endif %}</textarea>
                             </div>
 
                             <div class="common-comments">
@@ -278,11 +371,17 @@
                             </div>
 
                             <div class="grading-actions">
-                                <button type="submit" class="btn btn-success" id="submitGrade">Сохранить оценку</button>
+                                <button type="submit" class="btn btn-success" id="submitGrade">
+                                    {% if homework.grade %}Обновить оценку{% else %}Сохранить оценку{% endif %}
+                                </button>
+                                
+                                {% if homework.grade %}
+                                <button type="button" class="btn cancel-edit-btn" id="cancelEditBtn">Отмена</button>
+                                {% endif %}
+                                
                                 <button type="button" class="btn btn-outline" id="requestRevisionBtn">Запросить доработку</button>
                             </div>
                         </form>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -323,7 +422,8 @@
     <div id="revisionModal" class="modal hidden">
         <div class="modal-content">
             <h3>Запрос доработки</h3>
-            <textarea id="revisionComment" class="form-control" rows="6" placeholder="Укажите, что нужно исправить в работе..."></textarea>
+            <p>Укажите, что нужно исправить в работе:</p>
+            <textarea id="revisionComment" class="form-control" rows="6" placeholder="Например: необходимо исправить ошибки в расчетах, добавить графики, переписать вывод..."></textarea>
             <div class="modal-actions">
                 <button id="submitRevision" class="btn btn-primary">Отправить запрос</button>
                 <button id="cancelRevision" class="btn btn-secondary">Отмена</button>
@@ -340,9 +440,10 @@
     <script src="{% static 'js/homework-detail.js' %}"></script>
     <script>
         // Глобальные переменные для использования в JS
-        const HOMEWORK_ID = {{ homework.id }};
-        const MAX_POINTS = {{ homework.assignment.max_points }};
-        const CSRF_TOKEN = "{{ csrf_token }}";
+        window.HOMEWORK_ID = {{ homework.id }};
+        window.MAX_POINTS = {{ homework.assignment.max_points }};
+        window.HAS_GRADE = {% if homework.grade %}true{% else %}false{% endif %};
+        window.CSRF_TOKEN = "{{ csrf_token }}";
         
         // CSRF токен для AJAX запросов
         function getCookie(name) {
@@ -360,7 +461,63 @@
             return cookieValue;
         }
         
-        const csrftoken = getCookie('csrftoken');
+        window.csrftoken = getCookie('csrftoken');
+        
+        // Показать/скрыть форму редактирования
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeBtn = document.getElementById('gradeBtn');
+            const editGradeBtn = document.getElementById('editGradeBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const gradeDisplayMode = document.getElementById('gradeDisplayMode');
+            const editGradeMode = document.getElementById('editGradeMode');
+            
+            // Кнопка "Выставить оценку" в заголовке
+            if (gradeBtn) {
+                gradeBtn.addEventListener('click', function() {
+                    if (gradeDisplayMode) {
+                        gradeDisplayMode.classList.add('hidden');
+                    }
+                    if (editGradeMode) {
+                        editGradeMode.classList.add('active');
+                    }
+                    
+                    // Прокручиваем к форме
+                    document.querySelector('.grading-section').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                });
+            }
+            
+            // Кнопка "Изменить оценку" в блоке с оценкой
+            if (editGradeBtn) {
+                editGradeBtn.addEventListener('click', function() {
+                    if (gradeDisplayMode) {
+                        gradeDisplayMode.classList.add('hidden');
+                    }
+                    if (editGradeMode) {
+                        editGradeMode.classList.add('active');
+                    }
+                    
+                    // Прокручиваем к форме
+                    editGradeMode.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                });
+            }
+            
+            // Кнопка "Отмена" в форме редактирования
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', function() {
+                    if (gradeDisplayMode) {
+                        gradeDisplayMode.classList.remove('hidden');
+                    }
+                    if (editGradeMode) {
+                        editGradeMode.classList.remove('active');
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

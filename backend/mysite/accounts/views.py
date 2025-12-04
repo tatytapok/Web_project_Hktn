@@ -14,6 +14,9 @@ import zipfile
 import io
 from .forms import TeacherRegistrationForm, GradeForm
 from .models import Course, Assignment, Homework, Attachment, Grade, StudentGroup
+import logging
+
+logger = logging.getLogger(__name__)
 
 # домашняя страница
 def home(request):
@@ -218,6 +221,8 @@ def homework_detail(request, homework_id):
 @require_POST
 def grade_homework(request, homework_id):
     """API для выставления оценки (AJAX)"""
+    logger.info(f"Grade homework request: {request.POST}")
+    
     homework = get_object_or_404(
         Homework,
         id=homework_id,
@@ -228,6 +233,20 @@ def grade_homework(request, homework_id):
         grade_value = int(request.POST.get('grade_value'))
         points = int(request.POST.get('points', 0))
         comment = request.POST.get('comment', '')
+        
+        # Валидация баллов
+        if points < 0 or points > homework.assignment.max_points:
+            return JsonResponse({
+                'success': False,
+                'error': f'Баллы должны быть от 0 до {homework.assignment.max_points}'
+            }, status=400)
+        
+        # Валидация оценки
+        if grade_value < 1 or grade_value > 5:
+            return JsonResponse({
+                'success': False,
+                'error': 'Оценка должна быть от 1 до 5'
+            }, status=400)
         
         # Создаем или обновляем оценку
         grade, created = Grade.objects.update_or_create(
@@ -249,13 +268,23 @@ def grade_homework(request, homework_id):
             'success': True,
             'message': 'Оценка успешно сохранена',
             'grade': grade_value,
-            'points': points
+            'points': points,
+            'grade_display': grade.grade_with_text,
+            'teacher_name': request.user.get_full_name(),
+            'graded_at': timezone.now().strftime('%d.%m.%Y %H:%M')
         })
     except (ValueError, TypeError) as e:
+        logger.error(f"Error grading homework: {e}")
         return JsonResponse({
             'success': False,
             'error': 'Некорректные данные'
-        })
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error grading homework: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @login_required
 @user_passes_test(is_teacher)
@@ -275,22 +304,37 @@ def request_revision(request, homework_id):
             'error': 'Укажите комментарий с замечаниями'
         })
     
-    # Создаем комментарий преподавателя
-    Grade.objects.create(
-        homework=homework,
-        teacher=request.user,
-        comment=comment,
-        is_revision_request=True
-    )
-    
-    # Изменяем статус на "на доработке"
-    homework.status = 'revision'
-    homework.save()
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Запрос на доработку отправлен'
-    })
+    try:
+        # Создаем запись о запросе доработки
+        # Для запроса доработки grade_value и points могут быть null
+        grade, created = Grade.objects.update_or_create(
+            homework=homework,
+            defaults={
+                'teacher': request.user,
+                'comment': comment,
+                'is_revision_request': True,
+                'graded_at': timezone.now(),
+                # grade_value и points остаются null
+            }
+        )
+        
+        # Изменяем статус домашнего задания на "на доработке"
+        homework.status = 'revision'
+        homework.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Запрос на доработку отправлен студенту',
+            'status': 'revision',
+            'status_display': 'На доработке'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error requesting revision: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Ошибка при отправке запроса: {str(e)}'
+        }, status=500)
 
 @login_required
 @user_passes_test(is_teacher)
