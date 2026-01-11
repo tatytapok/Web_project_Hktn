@@ -213,6 +213,228 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+// ====== Я КАЛЕНДАРЬ Я КАЛЕНДАРЬ Я КАЛЕНДАРЬ =======
+
+ // Пример данных активности (в реальном приложении эти данные будут приходить с сервера)
+const activityData = {
+    "2025-01-10": "active",
+    "2025-01-11": "active",
+    "2025-01-12": "planned",
+    "2025-01-15": "active",
+    "2025-01-20": "active",
+    "2025-01-25": "planned",
+    "2025-02-01": "active",
+    "2025-02-05": "active",
+    "2025-02-10": "planned",
+    "2025-02-14": "active",
+    "2025-02-28": "active",
+    "2025-03-03": "active",
+    "2025-03-08": "planned",
+    "2025-03-15": "active",
+    "2025-03-22": "active",
+    "2025-04-01": "planned",
+    "2025-04-10": "active",
+    "2025-04-20": "planned",
+    "2025-05-05": "active",
+    "2025-05-15": "active",
+    "2025-06-01": "planned",
+    "2025-06-10": "active",
+    "2025-07-05": "planned",
+    "2025-08-01": "active",
+    "2025-08-15": "active",
+    "2025-09-10": "planned",
+    "2025-09-20": "active",
+    "2025-10-05": "active",
+    "2025-10-15": "planned",
+    "2025-11-01": "active",
+    "2025-11-11": "planned",
+    "2025-12-05": "active",
+    "2025-12-25": "planned",
+    "2025-12-31": "active"
+};
+
+const monthNames = [
+    "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+];
+
+let currentYear = 2025;
+
+function renderCalendar(year) {
+    currentYear = year;
+    const calendar = document.getElementById("calendar");
+    const monthsHeader = document.getElementById("monthsHeader");
+    const currentYearElement = document.getElementById("currentYear");
+    const scroll = document.getElementById("calendarScroll");
+    
+    // Обновляем активную кнопку года
+    document.querySelectorAll('.years button').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.year) === year);
+    });
+    
+    // Обновляем заголовок
+    currentYearElement.textContent = year;
+    
+    // Очищаем календарь
+    calendar.innerHTML = "";
+    monthsHeader.innerHTML = "";
+    
+    // Определяем количество дней в году
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDaysInYear = isLeapYear ? 366 : 365;
+    
+    // Создаем дату начала года
+    const startDate = new Date(year, 0, 1);
+    
+    // Создаем массив всех дней года
+    const daysArray = [];
+    let currentDate = new Date(startDate);
+    
+    // Группируем дни по месяцам
+    const monthData = {};
+    let activeDaysCount = 0;
+    let plannedDaysCount = 0;
+    
+    // Инициализируем структуру для месяцев
+    for (let i = 0; i < 12; i++) {
+        monthData[i] = {
+            days: 0,
+            active: 0,
+            planned: 0,
+            name: monthNames[i],
+            firstDayOffset: 0
+        };
+    }
+    
+    // Сначала определяем смещение для каждого месяца
+    for (let month = 0; month < 12; month++) {
+        const firstDayOfMonth = new Date(year, month, 1);
+        let firstDayWeekday = firstDayOfMonth.getDay();
+        // Преобразуем воскресенье (0) в 6, понедельник (1) в 0
+        firstDayWeekday = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
+        monthData[month].firstDayOffset = firstDayWeekday;
+    }
+    
+    // Заполняем календарь
+    for (let i = 0; i < totalDaysInYear; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const month = date.getMonth();
+        const dayOfMonth = date.getDate();
+        const isoDate = date.toISOString().split('T')[0];
+        
+        // Увеличиваем счетчик дней в месяце
+        monthData[month].days++;
+        
+        // Создаем элемент дня
+        const dayElement = document.createElement("div");
+        dayElement.classList.add("day");
+        dayElement.textContent = dayOfMonth;
+        
+        // Добавляем класс для дней вне текущего месяца (если нужен эффект смещения)
+        // Проверяем, является ли это первый день месяца и нужно ли добавить отступ
+        if (dayOfMonth === 1 && monthData[month].firstDayOffset > 0) {
+            // Добавляем пустые элементы для смещения
+            for (let j = 0; j < monthData[month].firstDayOffset; j++) {
+                const emptyDay = document.createElement("div");
+                emptyDay.classList.add("day", "month-offset");
+                calendar.appendChild(emptyDay);
+            }
+        }
+        
+        // Проверяем активность
+        if (activityData[isoDate]) {
+            dayElement.classList.add(activityData[isoDate]);
+            if (activityData[isoDate] === "active") {
+                activeDaysCount++;
+                monthData[month].active++;
+            } else if (activityData[isoDate] === "planned") {
+                plannedDaysCount++;
+                monthData[month].planned++;
+            }
+        }
+        
+        // Проверяем сегодняшний день
+        const today = new Date();
+        if (date.getFullYear() === today.getFullYear() &&
+            date.getMonth() === today.getMonth() &&
+            date.getDate() === today.getDate()) {
+            dayElement.classList.add("today");
+        }
+        
+        // Добавляем подсказку
+        const tooltip = document.createElement("div");
+        tooltip.classList.add("day-tooltip");
+        
+        const dateStr = date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        let activityType = "Нет активности";
+        if (activityData[isoDate] === "active") {
+            activityType = "Активность: уроки/редактирование";
+        } else if (activityData[isoDate] === "planned") {
+            activityType = "Запланировано: встреча/урок";
+        }
+        
+        tooltip.textContent = `${dateStr} - ${activityType}`;
+        dayElement.appendChild(tooltip);
+        
+        // Добавляем в календарь
+        calendar.appendChild(dayElement);
+    }
+    
+    // Создаем заголовки месяцев
+    for (let month = 0; month < 12; month++) {
+        const data = monthData[month];
+        if (data.days === 0) continue;
+        
+        const monthSection = document.createElement("div");
+        monthSection.classList.add("month-section");
+        
+        // Рассчитываем количество колонок для месяца
+        const firstDayWeekday = new Date(year, month, 1).getDay();
+        const offset = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const totalColumns = daysInMonth + offset;
+        
+        monthSection.style.flex = `0 0 ${totalColumns * 39}px`; // 35px + 4px gap
+        
+        const monthName = document.createElement("div");
+        monthName.classList.add("month-name");
+        monthName.textContent = data.name;
+        
+        const daysCounter = document.createElement("div");
+        daysCounter.classList.add("days-counter");
+        daysCounter.textContent = `${data.active + data.planned}/${data.days}`;
+        
+        monthSection.appendChild(monthName);
+        monthSection.appendChild(daysCounter);
+        monthsHeader.appendChild(monthSection);
+    }
+    
+    // Обновляем статистику
+    document.getElementById("totalDays").textContent = totalDaysInYear;
+    document.getElementById("activeDays").textContent = activeDaysCount;
+    document.getElementById("plannedDays").textContent = plannedDaysCount;
+    
+    const totalActivityDays = activeDaysCount + plannedDaysCount;
+    const percent = Math.round((totalActivityDays / totalDaysInYear) * 100);
+    document.getElementById("completionPercent").textContent = `${percent}%`;
+    
+    // Прокручиваем к началу года
+    scroll.scrollLeft = 0;
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    renderCalendar(2025);
+});
+
     // ===== ФУНКЦИИ СЕКЦИИ КУРСОВ =====
     function scrollCourses(distance) {
         coursesContainer.scrollBy({

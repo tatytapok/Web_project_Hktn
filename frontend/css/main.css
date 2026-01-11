@@ -1,3 +1,46 @@
+/*=== ОПРЕДЕЛЕНИЕ ШРИФТОВ ===*/
+/*lIGHT*/
+@font-face {
+    font-family: "GrosVenture";
+    src: url(../fonts/Gros\ Ventre\ Light.ttf) format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+/*REGULAR*/
+@font-face {
+    font-family: "GrosVenture";
+    src: url(../fonts/Gros\ Ventre\ Regular.ttf) format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/*BOLD*/
+@font-face {
+    font-family: "GrosVenture";
+    src: url(../fonts/Gros\ Ventre\ Bold.ttf) format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+/*SEMIBOLD*/
+@font-face {
+    font-family: "GrosVenture";
+    src: url(../fonts/Gros\ Ventre\ Semibold.ttf) format('truetype');
+    font-weight: 550;
+    font-style: normal;
+    font-display: swap;
+}
+
+/*THIN*/
+@font-face {
+    font-family: "GrosVenture";
+    src: url(../fonts/Gros\ Ventre\ Thin.ttf) format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
 /* ===== ОСНОВНЫЕ ПЕРЕМЕННЫЕ И БАЗОВЫЕ СТИЛИ ===== */
 :root {
     /* Цветовая палитра */
@@ -13,7 +56,7 @@
     --back-gradient:   radial-gradient(circle,rgba(213, 211, 188, 1) 0%, rgba(121, 186, 175, 1) 100%);
     
     /* Функциональные цвета */
-    --back-gradient: radial-gradient(circle,rgba(213, 211, 188, 1) 0%, rgba(121, 186, 175, 1) 100%);
+    --back-gradient: radial-gradient(circle,rgba(213, 211, 188, 1) 0%, rgb(105, 185, 172) 100%);
     --form-bg: white;
     --accent: var(--olive-dark);
     --accent-hover: var(--brown-dark);
@@ -33,7 +76,8 @@ html {
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'GrosVenture', sans-serif;
+    font-weight: 300;
     background: var(--back-gradient);
     margin: 0;
     position: relative;
@@ -329,7 +373,6 @@ header {
 }
 .profile-name{
     font-size: 30px !important ;
-    font-weight: bold;
     line-height: 1.1;
     padding-bottom: 1%;
  
@@ -618,14 +661,164 @@ main {
 .block-prophy{
     justify-self: center;
     padding: 40px 40px;
-    font-size: 64px;
     
     
 }
 .name-block-prophy{
-    border: 5px black;
+   font-size: 50px;
+    font-weight: 500;
+
+    width: 486px;
+    height: 107px;
+
+    border: 5px solid #000;
+    border-radius: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 40px auto; /* центрирование + отступ снизу */
+
+    box-sizing: border-box;
 }
 
+/* Родительский контейнер для всех трех блоков */
+.info-block {
+    display: grid;
+    grid-template-columns: 1fr auto; /* Две колонки: левая для текстовых блоков, правая для фото */
+    gap: 25px; /* Расстояние между колонками */
+    position: relative;
+}
+
+/* ЛЕВАЯ КОЛОНКА: текстовые блоки */
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Расстояние между about-text и my-ability */
+}
+
+.about-text{
+    background-color: #DDDDDD;
+    border-radius: 20px;
+    padding: 25px 39px;
+    width: 787px;
+    height: 379px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Внешняя тень */
+    position: relative;
+    overflow: auto; /* Если текст выходит за границы */
+}
+.about-text h3{
+    font-size: 36px;
+    font-family: 'GrosVentre';
+    font-weight: 700;
+
+}
+
+.text-about-me {
+    margin-top: 15px;
+    font-size: 22px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.my-ability{
+    background-color: rgba(199, 214, 218, 0.81);
+    border-radius: 20px;
+    padding: 25px 39px;
+    width: 733px;
+    height: 234px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Внешняя тень */
+    position: relative;
+    overflow: auto; /* Если текст выходит за границы */
+}
+.my-ability h3{
+    font-size: 36px;
+    font-family: 'GrosVentre';
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+.text-my-ability{
+    margin-top: 15px;
+    font-size: 20px;
+    line-height: 1.6;
+    color: #444;
+}
+
+/* ПРАВАЯ КОЛОНКА: фото */
+.main-photo{
+    position: relative;
+    width: 386px; /* 376px + 5px padding с каждой стороны */
+    height: 611px; /* 601px + 5px padding с каждой стороны */
+    border-radius: 25px; /* 20px + 5px для учета паддинга */
+    padding: 5px; /* Прокладка для градиента */
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #8690a2 0%, #4a5568 100%); /* Градиент под углом */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.main-photo img {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px; /* Внутренние скругленные углы */
+    object-fit: cover; /* Изображение заполняет блок */
+    display: block;
+}
+
+/* Для адаптивности на мобильных устройствах */
+@media (max-width: 1200px) {
+    .info-block {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .left-column {
+        order: 2;
+    }
+    
+    .main-photo {
+        order: 1;
+        margin: 0 auto;
+    }
+    
+    .about-text,
+    .my-ability {
+        width: 100%;
+        max-width: 787px;
+    }
+}
+
+@media (max-width: 768px) {
+    .name-block-prophy {
+        font-size: 36px;
+        padding: 8px 20px;
+    }
+    
+    .about-text,
+    .my-ability {
+        padding: 20px 25px;
+        height: auto;
+        min-height: 300px;
+    }
+    
+    .about-text h3,
+    .my-ability h3 {
+        font-size: 24px;
+    }
+    
+    .text-about-me,
+    .text-my-ability {
+        font-size: 16px;
+    }
+    
+    .main-photo {
+        width: 100%;
+        max-width: 386px;
+        height: 500px;
+    }
+}
 /* 
 .section {
     background-color: var(--form-bg);
@@ -641,6 +834,342 @@ main {
     font-weight: bold;
 } */
 
+
+/*=== Я КАЛЕНДАРЬ ===*/
+        .calendar-wrapper {
+            width: 95%;
+            max-width: 1400px;
+            margin: 40px auto;
+            background: #cfe6e2;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Стили для заголовка с годами */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .current-year {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c6c6f;
+        }
+
+        .years {
+            display: flex;
+            gap: 10px;
+        }
+
+        .years button {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 2px solid #6f8f8c;
+            background: transparent;
+            color: #2c6c6f;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .years button:hover,
+        .years button.active {
+            background: #2c6c6f;
+            color: white;
+            border-color: #2c6c6f;
+        }
+
+        /* Стили для прокручиваемого календаря */
+        .calendar-scroll {
+            overflow-x: auto;
+            padding: 20px 10px;
+            background: #878FC3;
+            background: radial-gradient(circle, rgba(135, 143, 195, 0.68) 0%, rgba(237, 243, 242, 1) 100%);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        /* Сетка календаря */
+        .calendar-container {
+            display: inline-flex;
+            min-width: min-content;
+            position: relative;
+        }
+
+        .weekday-spacer {
+            height: 52px; /* ≈ высота months-header */
+        }
+        /* Боковая панель с днями недели */
+        .weekdays-sidebar {
+            position: sticky;
+            padding-left: 10px;
+            z-index: 10;
+            padding-right: 3px;
+        }
+
+        /* FIX 1: spacer for months header */
+        .weekday-spacer {
+            height: 52px;
+        }
+
+        .weekday {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            font-weight: bold;
+            color: #2c6c6f;
+            font-size: 14px;
+        }
+
+        .weekday:last-child {
+            border-bottom: none;
+        }
+
+        /* Основная сетка календаря */
+        .calendar-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Панель с месяцами */
+        .months-header {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .month-section {
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 3px;
+        }
+
+        .month-name {
+            font-weight: bold;
+            color: #2c6c6f;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .days-counter {
+            font-size: 12px;
+            color: #6f8f8c;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* Дни календаря */
+        .calendar {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(7, var(--day-size));
+            grid-auto-columns: var(--day-size);
+            gap: var(--day-gap);
+            min-width: min-content;
+        }
+
+        .day {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(111, 143, 140, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            /* FIX 4: бледный bold */
+            font-weight: 600;
+            color: rgba(44, 108, 111, 0.55);
+
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;   
+            }
+
+        .day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        /* Цвета активности */
+        .day.active {
+            background: rgba(44, 108, 111, 0.63);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+
+
+
+        .day.planned {
+            background: rgba(136, 254, 239, 1);
+            border: none;
+            font-weight: bold;
+        }
+
+                /* ---------- TOOLTIP (FIX 2) ---------- */
+
+        .day-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            color: #2c6c6f;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+            white-space: nowrap;
+            display: none;
+            z-index: 100;
+        }
+
+        .day-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .day:hover .day-tooltip {
+            display: block;
+        }
+
+
+        .day.today {
+            border: 2px solid #1f5655;
+            box-shadow: 0 0 0 1px #b6f2f9 inset;
+        }
+
+        /* Информационная панель */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c6c6f;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6f8f8c;
+            margin-top: 5px;
+        }
+
+        .color-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #2c6c6f;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-active {
+            background: rgba(44, 108, 111, 0.63);
+        }
+
+        .legend-planned {
+            background: rgba(136, 254, 239, 1);
+        }
+
+        /* Исправление для правильного отображения календаря */
+.calendar {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 35px);
+    grid-auto-columns: 35px;
+    gap: 4px;
+    min-width: min-content;
+}
+
+/* Убедитесь, что контейнеры имеют правильные размеры */
+.calendar-container {
+    display: inline-flex;
+    min-width: min-content;
+}
+
+/* Фикс для скролла */
+.calendar-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Фикс для дней вне месяца */
+.day.month-offset {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Улучшенные стили для кнопок */
+.years button {
+    min-width: 70px;
+    text-align: center;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .calendar-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .years {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+      
 /* ===== СЕКЦИЯ КУРСОВ ===== */
 .my-course {
     text-align: left !important;
