@@ -151,6 +151,68 @@ document.addEventListener('DOMContentLoaded', function() {
         saveUserData(newName, null);
     };
 
+// функция для адаптирования выпадающего списка на моб. устройства
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.querySelector('.dropdown');
+    const dropbtn = document.querySelector('.dropbtn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+    
+    // Для мобильных устройств - переключение по клику
+    if (window.innerWidth <= 768) {
+        dropbtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+                dropbtn.classList.remove('active');
+            } else {
+                dropdownContent.classList.add('show');
+                dropbtn.classList.add('active');
+            }
+        });
+        
+        // Закрытие по клику вне меню
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+                dropbtn.classList.remove('active');
+            }
+        });
+        
+        // Закрытие по нажатию Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                dropdownContent.classList.remove('show');
+                dropbtn.classList.remove('active');
+            }
+        });
+    }
+    
+    // Для десктопа - плавные анимации
+    if (window.innerWidth > 768) {
+        dropdown.addEventListener('mouseenter', function() {
+            dropdownContent.style.display = 'block';
+            dropdownContent.style.opacity = '0';
+            dropdownContent.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                dropdownContent.style.opacity = '1';
+                dropdownContent.style.transform = 'translateY(0)';
+            }, 10);
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            dropdownContent.style.opacity = '0';
+            dropdownContent.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                dropdownContent.style.display = 'none';
+            }, 300);
+        });
+    }
+});
+
     // ===== ФУНКЦИИ СЕКЦИИ КУРСОВ =====
     function scrollCourses(distance) {
         coursesContainer.scrollBy({

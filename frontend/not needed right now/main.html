@@ -4,23 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель преподавателя</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .column-back{
+            /* Фоновое изображение */
+            background-image: url('../elements/teacher-main-page/column-up.png');
+            background-repeat: no-repeat;
+            background-position: top center; /* Картинка выравнивается по верху и центру */
+
+            /* Фиксированное позиционирование */
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Важно: отправляет элемент под всё (-1) */
+
+            /* Размеры */
+            width: 100vw; /* На всю ширину окна */
+            height: 1510px; /* Высота видимой части "ножек" колонн. ПОДБЕРИТЕ под ваше изображение! */
+
+            /* Гарантия, что блок не будет перехватывать клики */
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
+    <div class="column-back"></div>
     <header>
         <nav class="navbar">
+           <div class="nav-left">
+        <div class="LOGO">
+            <img src="../elements/teacher-main-page/LOGO.png">
+        </div>
+
+        <div class="nav-buttons" id="navButtons">
+            <a href="#home" class="nav-btn"><img src="../elements/teacher-main-page/home.png"></a>
+            <a href="#news" class="nav-btn"><img src="../elements/teacher-main-page/News.png"></a>
+            <a href="#bell" class="nav-btn"><img src="../elements/teacher-main-page/bell.png"></a>
+        </div>
+    </div>
+
+
             <div class="profile-section">
-                <div class="profile-pic-container">
+
+                <div class="profile-info-navbar">
+                    <div class="profile-naming">
+                        <div class="profile-name" id="profileName">Иванов Иван Иванович</div>
+                        <div class="profile-id" id="profile-id">@ticherid</div>
+                    </div>
+                
+                 </div>
+                 <div class="profile-pic-container">
                     <img src="https://via.placeholder.com/150" alt="Фото преподавателя" class="profile-pic" id="profilePic">
-                    <input type="file" id="profilePicInput" class="profile-pic-input" accept="image/*">
-                </div>
-                <div class="profile-name" id="profileName">Иванов Иван Иванович</div>
-            </div>
-            
-            <div class="nav-buttons" id="navButtons">
-                <a href="#homeworks" class="nav-btn">Домашнее задание</a>
-                <a href="#home" class="nav-btn">Домой</a>
-            </div>
+                    
+                 </div>
+                
+                <div class="dropdown">
+    <button class="dropbtn" id="string">
+        <img src="../elements/teacher-main-page/string.png" alt="Меню">
+    </button>
+
+    <div class="dropdown-content">
+        <div class="dropdown-list">
+
+            <a href="#homeworks" class="dropdown-item">
+                <img src="../elements/teacher-main-page/dropdownc/1 home-work.png" alt="">
+                <span>Домашние работы</span>
+            </a>
+
+            <a href="#my-course" class="dropdown-item">
+                <img src="../elements/teacher-main-page/dropdownc/2 my-course.png" alt="">
+                <span>Мои курсы</span>
+            </a>
+
+            <a href="#my-achives" class="dropdown-item">
+                <img src="../elements/teacher-main-page/dropdownc/3 my-achives.png" alt="">
+                <span>Мои награды</span>
+            </a>
+
+            <a href="#setting" class="dropdown-item">
+                <img src="../elements/teacher-main-page/dropdownc/4 settings.png" alt="">
+                <span>Настройки</span>
+            </a>
+
+            <a href="#call" class="dropdown-item">
+                <img src="../elements/teacher-main-page/dropdownc/5 back-connect.png" alt="">
+                <span>Обратная связь</span>
+            </a>
+
+            <a href="#exit" class="dropdown-item exit">
+                <img src="../elements/teacher-main-page/dropdownc/6 exit.png" alt="">
+                <span>Выход</span>
+            </a>
+
+        </div>
+    </div>    
             
             <div class="hamburger" id="hamburger">
                 <span></span>
@@ -31,6 +108,30 @@
     </header>
 
     <main>
+
+        <section class="block-prophy">
+            <div class="info-block">
+                <div class="name-block-prophy">Блок профи</div>
+                <div class="about-text">
+                    <h3>обо мне</h3>
+                    <div class="text-about-me"></div>
+                </div>
+                <div class="my-ability">
+                    <h3>навыки</h3>
+                    <div class="text-my-ability"></div>
+                </div>
+                <div class="main-photo">
+                    <img src="#">
+                </div>
+            </div>
+            <div class="i-calendar"></div>
+        </section>
+
+
+
+
+
+
         <section id="home" class="section">
             <h2 class="my-course">Мои курсы</h2>
             <div class="course-buttons">

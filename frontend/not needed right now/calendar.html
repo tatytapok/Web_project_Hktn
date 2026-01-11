@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Календарь активности преподавателя</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #d7ebe7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .calendar-wrapper {
+            width: 95%;
+            max-width: 1400px;
+            margin: 40px auto;
+            background: #cfe6e2;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Стили для заголовка с годами */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .current-year {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c6c6f;
+        }
+
+        .years {
+            display: flex;
+            gap: 10px;
+        }
+
+        .years button {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 2px solid #6f8f8c;
+            background: transparent;
+            color: #2c6c6f;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .years button:hover,
+        .years button.active {
+            background: #2c6c6f;
+            color: white;
+            border-color: #2c6c6f;
+        }
+
+        /* Стили для прокручиваемого календаря */
+        .calendar-scroll {
+            overflow-x: auto;
+            padding: 20px 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        /* Сетка календаря */
+        .calendar-container {
+            display: inline-flex;
+            min-width: min-content;
+            position: relative;
+        }
+
+        .weekday-spacer {
+            height: 52px; /* ≈ высота months-header */
+        }
+
+        /* Боковая панель с днями недели */
+        .weekdays-sidebar {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background: #cfe6e2;
+            padding-right: 20px;
+        }
+
+        /* FIX 1: spacer for months header */
+        .weekday-spacer {
+            height: 52px;
+        }
+
+        .weekday {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            font-weight: bold;
+            color: #2c6c6f;
+            font-size: 14px;
+        }
+
+        .weekday:last-child {
+            border-bottom: none;
+        }
+
+        /* Основная сетка календаря */
+        .calendar-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Панель с месяцами */
+        .months-header {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .month-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2c6c6f;
+        }
+
+        .month-name {
+            font-weight: bold;
+            color: #2c6c6f;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .days-counter {
+            font-size: 12px;
+            color: #6f8f8c;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* Дни календаря */
+        .calendar {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(7, 35px);
+            gap: 4px;
+        }
+
+        .day {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(111, 143, 140, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            /* FIX 4: бледный bold */
+            font-weight: 600;
+            color: rgba(44, 108, 111, 0.55);
+
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;   
+            }
+
+        .day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        /* Цвета активности */
+        .day.active {
+            background: rgba(44, 108, 111, 0.63);
+            border-color: #2c6c6f;
+            color: white;
+            font-weight: bold;
+        }
+
+        .day.month-offset {
+            background: rgba(44, 108, 111, 0.08);
+            border-color: rgba(44, 108, 111, 0.15);
+        }
+
+
+        .day.planned {
+            background: rgba(136, 254, 239, 1);
+            border-color: #4ecdc4;
+            color: #2c6c6f;
+            font-weight: bold;
+        }
+
+                /* ---------- TOOLTIP (FIX 2) ---------- */
+
+        .day-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            color: #2c6c6f;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+            white-space: nowrap;
+            display: none;
+            z-index: 100;
+        }
+
+        .day-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .day:hover .day-tooltip {
+            display: block;
+        }
+
+
+        .day.today {
+            border: 2px solid #1f5655;
+            box-shadow: 0 0 0 1px #b6f2f9 inset;
+        }
+
+        /* Информационная панель */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c6c6f;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6f8f8c;
+            margin-top: 5px;
+        }
+
+        .color-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #2c6c6f;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-active {
+            background: rgba(44, 108, 111, 0.63);
+        }
+
+        .legend-planned {
+            background: rgba(136, 254, 239, 1);
+        }
+
+        /* Подсказка при наведении */
+        .day-tooltip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            color: #2c6c6f;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+            white-space: nowrap;
+
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+            z-index: 100;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+        }
+
+
+        .day-tooltip::after {
+           content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .day:hover .day-tooltip {
+            display: block;
+        }
+
+        /* Полоса прокрутки */
+        .calendar-scroll::-webkit-scrollbar {
+            height: 12px;
+        }
+
+        .calendar-scroll::-webkit-scrollbar-track {
+            background: rgba(111, 143, 140, 0.1);
+            border-radius: 6px;
+        }
+
+        .calendar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(44, 108, 111, 0.5);
+            border-radius: 6px;
+        }
+
+        .calendar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(44, 108, 111, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+<div class="calendar-wrapper">
+    <div class="calendar-header">
+        <div class="current-year" id="currentYear">2025</div>
+        <div class="years">
+            <button onclick="renderCalendar(2024)" data-year="2024">2024</button>
+            <button onclick="renderCalendar(2025)" data-year="2025" class="active">2025</button>
+            <button onclick="renderCalendar(2026)" data-year="2026">2026</button>
+            <button onclick="renderCalendar(2027)" data-year="2027">2027</button>
+        </div>
+    </div>
+
+    <div class="calendar-scroll" id="calendarScroll">
+        <div class="calendar-container">
+            <div class="weekdays-sidebar">
+                <div class="weekday-spacer"></div> <!-- ВАЖНО иначе все уплывет -->
+                <div class="weekday">Пн</div>
+                <div class="weekday">Вт</div>
+                <div class="weekday">Ср</div>
+                <div class="weekday">Чт</div>
+                <div class="weekday">Пт</div>
+                <div class="weekday">Сб</div>
+                <div class="weekday">Вс</div>
+            </div>
+            
+            <div class="calendar-grid">
+                <div class="months-header" id="monthsHeader"></div>
+                <div class="calendar" id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-value" id="totalDays">365</div>
+            <div class="stat-label">Всего дней в году</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="activeDays">0</div>
+            <div class="stat-label">Дней активности</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="plannedDays">0</div>
+            <div class="stat-label">Запланировано</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="completionPercent">0%</div>
+            <div class="stat-label">Завершено</div>
+        </div>
+    </div>
+
+    <div class="color-legend">
+        <div class="legend-item">
+            <div class="legend-color legend-active"></div>
+            <span>Активность (уроки/редактирование)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-planned"></div>
+            <span>Запланировано (встречи/уроки)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(111, 143, 140, 0.2);"></div>
+            <span>Обычный день</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Пример данных активности (в реальном приложении эти данные будут приходить с сервера)
+    const activityData = {
+        "2025-01-10": "active",
+        "2025-01-11": "active",
+        "2025-01-12": "planned",
+        "2025-01-15": "active",
+        "2025-01-20": "active",
+        "2025-01-25": "planned",
+        "2025-02-01": "active",
+        "2025-02-05": "active",
+        "2025-02-10": "planned",
+        "2025-02-14": "active",
+        "2025-02-28": "active",
+        "2025-03-03": "active",
+        "2025-03-08": "planned",
+        "2025-03-15": "active",
+        "2025-03-22": "active",
+        "2025-04-01": "planned",
+        "2025-04-10": "active",
+        "2025-04-20": "planned",
+        "2025-05-05": "active",
+        "2025-05-15": "active",
+        "2025-06-01": "planned",
+        "2025-06-10": "active",
+        "2025-07-05": "planned",
+        "2025-08-01": "active",
+        "2025-08-15": "active",
+        "2025-09-10": "planned",
+        "2025-09-20": "active",
+        "2025-10-05": "active",
+        "2025-10-15": "planned",
+        "2025-11-01": "active",
+        "2025-11-11": "planned",
+        "2025-12-05": "active",
+        "2025-12-25": "planned",
+        "2025-12-31": "active"
+    };
+
+    const monthNames = [
+        "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+    ];
+
+    const weekdayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+    let currentYear = 2025;
+
+    function renderCalendar(year) {
+        currentYear = year;
+        const calendar = document.getElementById("calendar");
+        const monthsHeader = document.getElementById("monthsHeader");
+        const currentYearElement = document.getElementById("currentYear");
+        const scroll = document.getElementById("calendarScroll");
+        
+        // Обновляем активную кнопку года
+        document.querySelectorAll('.years button').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.year) === year);
+        });
+        
+        // Обновляем заголовок
+        currentYearElement.textContent = year;
+        
+        // Очищаем календарь
+        calendar.innerHTML = "";
+        monthsHeader.innerHTML = "";
+        
+        const start = new Date(year, 0, 1);
+        const end = new Date(year, 11, 31);
+        
+        let currentDate = new Date(start);
+        let monthData = {};
+        let activeDaysCount = 0;
+        let plannedDaysCount = 0;
+        
+        // Группируем дни по месяцам
+        while (currentDate <= end) {
+            const month = currentDate.getMonth();
+            const iso = currentDate.toISOString().split("T")[0];
+            
+            if (!monthData[month]) {
+                monthData[month] = {
+                    days: 0,
+                    active: 0,
+                    planned: 0
+                };
+            }
+            
+            monthData[month].days++;
+            
+            // Создаем элемент дня
+            const day = document.createElement("div");
+            day.classList.add("day");
+            
+            // Добавляем дату в качестве текста (день месяца)
+            const dayNumber = currentDate.getDate();
+            day.textContent = dayNumber;
+            
+            // Проверяем активность
+            if (activityData[iso]) {
+                day.classList.add(activityData[iso]);
+                if (activityData[iso] === "active") {
+                    activeDaysCount++;
+                    monthData[month].active++;
+                } else if (activityData[iso] === "planned") {
+                    plannedDaysCount++;
+                    monthData[month].planned++;
+                }
+            }
+            
+            // Проверяем сегодняшний день
+            const today = new Date();
+            if (currentDate.getFullYear() === today.getFullYear() &&
+                currentDate.getMonth() === today.getMonth() &&
+                currentDate.getDate() === today.getDate()) {
+                day.classList.add("today");
+            }
+            
+            // Добавляем подсказку
+            const tooltip = document.createElement("div");
+            tooltip.classList.add("day-tooltip");
+            
+            const dateStr = currentDate.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            let activityType = "Нет активности";
+            if (activityData[iso] === "active") {
+                activityType = "Активность: уроки/редактирование";
+            } else if (activityData[iso] === "planned") {
+                activityType = "Запланировано: встреча/урок";
+            }
+            
+            tooltip.textContent = `${dateStr} - ${activityType}`;
+            day.appendChild(tooltip);
+            
+            calendar.appendChild(day);
+            
+            // Переходим к следующему дню
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        // Создаем заголовки месяцев
+        Object.keys(monthData).sort((a, b) => a - b).forEach(monthIndex => {
+            const month = parseInt(monthIndex);
+            const monthSection = document.createElement("div");
+            monthSection.classList.add("month-section");
+            
+            // Рассчитываем количество колонок для месяца (дни + смещение по дням недели)
+            const daysInMonth = monthData[month].days;
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            // Преобразуем воскресенье (0) в 6 для правильного смещения
+            const offset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+            const totalColumns = daysInMonth + offset;
+            
+            monthSection.style.flex = `${totalColumns} 0 auto`;
+            
+            const monthName = document.createElement("div");
+            monthName.classList.add("month-name");
+            monthName.textContent = monthNames[month];
+            
+            const daysCounter = document.createElement("div");
+            daysCounter.classList.add("days-counter");
+            daysCounter.textContent = `${monthData[month].active + monthData[month].planned}/${daysInMonth}`;
+            
+            monthSection.appendChild(monthName);
+            monthSection.appendChild(daysCounter);
+            monthsHeader.appendChild(monthSection);
+        });
+        
+        // Обновляем статистику
+        document.getElementById("totalDays").textContent = 
+            new Date(year, 1, 29).getMonth() === 1 ? "366" : "365"; // Проверка на високосный год
+        
+        document.getElementById("activeDays").textContent = activeDaysCount;
+        document.getElementById("plannedDays").textContent = plannedDaysCount;
+        
+        const totalActivityDays = activeDaysCount + plannedDaysCount;
+        const totalDays = new Date(year, 1, 29).getMonth() === 1 ? 366 : 365;
+        const percent = Math.round((totalActivityDays / totalDays) * 100);
+        document.getElementById("completionPercent").textContent = `${percent}%`;
+        
+        // Прокручиваем к началу года
+        scroll.scrollLeft = 0;
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCalendar(2025);
+    });
+</script>
+</body>
+</html>

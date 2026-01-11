@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Блок профи</title>
+
+<style>
+/* ===== Общие переменные ===== */
+:root {
+    --panel-width: 820px;
+    --panel-bg: #e9e9e9;
+    --card-bg: #ffffff;
+    --shadow: 0 10px 25px rgba(0,0,0,0.15);
+    --radius: 16px;
+    --transition: 0.5s ease;
+    --font: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== Контейнер панели ===== */
+.profile-panel {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translate(-100%, -50%);
+    width: var(--panel-width);
+    background: var(--panel-bg);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow);
+    padding: 24px 24px 24px 60px;
+    transition: transform var(--transition);
+    z-index: 1000;
+    font-family: var(--font);
+}
+
+/* Активное состояние */
+.profile-panel.active {
+    transform: translate(0, -50%);
+}
+
+/* ===== Стрелка ===== */
+.profile-toggle {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translate(-100%, -50%);
+    width: 44px;
+    height: 88px;
+    background: #ffffff;
+    border-radius: 12px 0 0 12px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-toggle::before {
+    content: "❯";
+    font-size: 28px;
+    transition: transform var(--transition);
+}
+
+.profile-panel.active .profile-toggle::before {
+    transform: rotate(180deg);
+}
+
+/* ===== Заголовок ===== */
+.profile-title {
+    width: fit-content;
+    padding: 10px 28px;
+    border: 2px solid #000;
+    border-radius: 999px;
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+/* ===== Основной контент ===== */
+.profile-content {
+    display: flex;
+    gap: 24px;
+}
+
+/* ===== Левая часть ===== */
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+.info-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.info-card h3 {
+    margin: 0 0 10px;
+    font-size: 20px;
+}
+
+.info-card p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 15px;
+}
+
+/* ===== Фото ===== */
+.profile-photo {
+    width: 260px;
+    flex-shrink: 0;
+}
+
+.profile-photo img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: block;
+}
+</style>
+</head>
+
+<body>
+
+<div class="profile-panel" id="profilePanel">
+
+    <div class="profile-toggle" id="profileToggle"></div>
+
+    <div class="profile-title">Блок профи</div>
+
+    <div class="profile-content">
+
+        <div class="profile-info">
+            <div class="info-card">
+                <h3>Обо мне</h3>
+                <p id="aboutText">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3>Навыки</h3>
+                <p id="skillsText">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Ut enim ad minim veniam.
+                </p>
+            </div>
+        </div>
+
+        <div class="profile-photo">
+            <img id="profileImage"
+                 src="https://via.placeholder.com/400x600"
+                 alt="Фото преподавателя">
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ===== Открытие / закрытие ===== */
+const panel = document.getElementById('profilePanel');
+const toggle = document.getElementById('profileToggle');
+
+toggle.addEventListener('click', () => {
+    panel.classList.toggle('active');
+});
+
+/* ===== Пример динамической замены (в будущем из настроек профиля) ===== */
+function updateProfile(data) {
+    document.getElementById('aboutText').textContent = data.about;
+    document.getElementById('skillsText').textContent = data.skills;
+    document.getElementById('profileImage').src = data.image;
+}
+
+/* Пример вызова */
+updateProfile({
+    about: 'Я преподаватель с 10-летним опытом работы и любовью к своему делу.',
+    skills: 'JavaScript, HTML, CSS, React, UI/UX',
+    image: 'https://via.placeholder.com/400x600'
+});
+</script>
+
+</body>
+</html>
