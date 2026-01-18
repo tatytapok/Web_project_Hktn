@@ -14,9 +14,38 @@ class TeacherProfile(models.Model):
     
     @property
     def full_name(self):
-        if self.patronymic:
-            return f"{self.user.last_name} {self.user.first_name} {self.patronymic}"
-        return f"{self.user.last_name} {self.user.first_name}"
+        parts = []
+        # Добавляем фамилию
+        if self.user.last_name and self.user.last_name.strip():
+            parts.append(self.user.last_name.strip())
+        
+        # Добавляем имя
+        if self.user.first_name and self.user.first_name.strip():
+            parts.append(self.user.first_name.strip())
+        
+        # Добавляем отчество (если есть и не пустое)
+        if self.patronymic and self.patronymic.strip():
+            parts.append(self.patronymic.strip())
+        
+        return ' '.join(parts) if parts else self.user.username
+    
+    @property
+    def full_name_with_initials(self):
+        """Возвращает ФИО с инициалами (Иванов И.И.)"""
+        parts = []
+        
+        if self.user.last_name and self.user.last_name.strip():
+            parts.append(self.user.last_name.strip())
+        
+        if self.user.first_name and self.user.first_name.strip():
+            initials = f"{self.user.first_name.strip()[0]}."
+            parts.append(initials)
+        
+        if self.patronymic and self.patronymic.strip():
+            initials = f"{self.patronymic.strip()[0]}."
+            parts.append(initials)
+        
+        return ' '.join(parts) if parts else self.user.username
 
 class StudentGroup(models.Model):
     """Группа студентов"""

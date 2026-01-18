@@ -13,7 +13,7 @@ import os
 import zipfile
 import io
 from .forms import TeacherRegistrationForm, GradeForm
-from .models import Course, Assignment, Homework, Attachment, Grade, StudentGroup
+from .models import Course, Assignment, Homework, Attachment, Grade, StudentGroup, TeacherProfile
 import logging
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,9 @@ def user_login(request):
 @login_required
 def teacher_dashboard(request):
     """Панель управления преподавателя"""
-    # Получаем курсы преподавателя
+    # Получаем профиль преподавателя
+    teacher_profile = TeacherProfile.objects.get(user=request.user)
+
     courses = Course.objects.filter(teacher=request.user).prefetch_related('assignments')
     
     # Добавляем статистику для каждого курса
@@ -104,6 +106,7 @@ def teacher_dashboard(request):
     
     context = {
         'user': request.user,
+        'teacher_profile': teacher_profile,
         'courses': courses,
         'homeworks': homeworks,  # Переименовал с submissions на homeworks
         'pending_submissions_count': pending_count,

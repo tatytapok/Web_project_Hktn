@@ -156,11 +156,14 @@
 
         <!-- Правая часть: профиль + меню -->
         <div class="profile-section">
-
             <div class="profile-info-navbar">
                 <div class="profile-naming">
                     <div class="profile-name" id="profileName">
-                        {{ user.last_name }} {{ user.first_name }}
+                        {% if teacher_profile %}
+                            {{ teacher_profile.full_name }}
+                        {% else %}
+                            {{ user.last_name }} {{ user.first_name }}
+                        {% endif %}
                     </div>
                     <div class="profile-id">
                         @{{ user.username }}
@@ -247,10 +250,22 @@
                     <h3 style="color: var(--brown-dark); margin-bottom: 10px;">Ваши данные:</h3>
                     <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
                     <p><strong>ФИО:</strong> 
-                        {% if user.first_name or user.last_name %}
-                            {{ user.first_name }} {{ user.last_name }}
+                        {% if teacher_profile %}
+                            {% if teacher_profile.middle_name %}
+                                {{ teacher_profile.last_name }} {{ teacher_profile.first_name }} {{ teacher_profile.middle_name }}
+                            {% else %}
+                                {{ teacher_profile.full_name }}
+                            {% endif %}
                         {% else %}
-                            Не указано
+                            {% if user.middle_name %}
+                                {{ user.last_name }} {{ user.first_name }} {{ user.middle_name }}
+                            {% else %}
+                                {% if user.first_name or user.last_name %}
+                                    {{ user.last_name }} {{ user.first_name }}
+                                {% else %}
+                                    Не указано
+                                {% endif %}
+                            {% endif %}
                         {% endif %}
                     </p>
                     <p><strong>Email:</strong> 

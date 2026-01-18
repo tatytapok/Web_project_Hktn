@@ -53,11 +53,11 @@ class TeacherRegistrationForm(UserCreationForm):
             # Создаем профиль преподавателя
             TeacherProfile.objects.create(
                 user=user,
-                patronymic=self.cleaned_data['patronymic'],
+                patronymic=self.cleaned_data['patronymic'].strip() if self.cleaned_data['patronymic'] else '',
                 phone=self.cleaned_data['phone']
             )
             # Добавляем пользователя в группу преподавателей
-            teacher_group, created = Group.objects.get_or_create(name='Teacher')
+            teacher_group, _ = Group.objects.get_or_create(name='Teacher')
             user.groups.add(teacher_group)
 
         return user
