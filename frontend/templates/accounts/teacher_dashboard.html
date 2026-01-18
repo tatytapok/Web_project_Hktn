@@ -8,7 +8,7 @@
     <!-- Загрузка статических файлов Django -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <style>
+    <!-- <style>
         /* Дополнительные стили для таблицы */
         .homework-row {
             display: grid;
@@ -125,40 +125,116 @@
         #search-btn:hover {
             background-color: var(--primary-dark, #1a252f);
         }
-    </style>
+    </style> -->
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="profile-section">
-                <div class="profile-pic-container">
-                    <img src="{% static 'images/default-avatar.png' %}" alt="Фото преподавателя" class="profile-pic" id="profilePic">
-                    <input type="file" id="profilePicInput" class="profile-pic-input" accept="image/*">
-                </div>
-                <div class="profile-name" id="profileName">
-                    Добро пожаловать, {{ user.first_name }} {{ user.last_name }}!
-                </div>
+    {% load static %}
+
+<header>
+    <nav class="navbar">
+
+        <!-- Левая часть: логотип + кнопки -->
+        <div class="nav-left">
+            <div class="LOGO">
+                <img src="{% static 'elements/teacher-main-page/LOGO.png' %}" alt="LOGO">
             </div>
-            
+
             <div class="nav-buttons" id="navButtons">
-                <a href="#homeworks" class="nav-btn">Домашнее задание</a>
-                <a href="#home" class="nav-btn">Домой</a>
-                <!-- Форма выхода -->
-                <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-btn" style="background: #dc3545; border: none; color: white; cursor: pointer;">
-                        Выйти
-                    </button>
-                </form>
+                <a href="#" class="nav-btn">
+                    <img src="{% static 'elements/teacher-main-page/home.png' %}" alt="Главная">
+                </a>
+
+                <a href="#" class="nav-btn">
+                    <img src="{% static 'elements/teacher-main-page/News.png' %}" alt="Новости">
+                </a>
+
+                <a href="#" class="nav-btn">
+                    <img src="{% static 'elements/teacher-main-page/bell.png' %}" alt="Уведомления">
+                </a>
             </div>
-            
+        </div>
+
+        <!-- Правая часть: профиль + меню -->
+        <div class="profile-section">
+
+            <div class="profile-info-navbar">
+                <div class="profile-naming">
+                    <div class="profile-name" id="profileName">
+                        {{ user.last_name }} {{ user.first_name }}
+                    </div>
+                    <div class="profile-id">
+                        @{{ user.username }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-pic-container">
+                <img
+                    src="{% static 'images/default-avatar.png' %}"
+                    alt="Фото преподавателя"
+                    class="profile-pic"
+                    id="profilePic"
+                >
+            </div>
+
+            <!-- Dropdown меню -->
+            <div class="dropdown">
+                <button class="dropbtn" id="string">
+                    <img src="{% static 'elements/teacher-main-page/string.png' %}" alt="Меню">
+                </button>
+
+                <div class="dropdown-content">
+                    <div class="dropdown-list">
+
+                        <a href="#" class="dropdown-item">
+                            <img src="{% static 'elements/teacher-main-page/dropdownc/1 home-work.png' %}">
+                            <span>Домашние работы</span>
+                        </a>
+
+                        <a href="#" class="dropdown-item">
+                            <img src="{% static 'elements/teacher-main-page/dropdownc/2 my-course.png' %}">
+                            <span>Мои курсы</span>
+                        </a>
+
+                        <a href="#" class="dropdown-item">
+                            <img src="{% static 'elements/teacher-main-page/dropdownc/3 my-achives.png' %}">
+                            <span>Мои награды</span>
+                        </a>
+
+                        <a href="#" class="dropdown-item">
+                            <img src="{% static 'elements/teacher-main-page/dropdownc/4 settings.png' %}">
+                            <span>Настройки</span>
+                        </a>
+
+                        <a href="#" class="dropdown-item">
+                            <img src="{% static 'elements/teacher-main-page/dropdownc/5 back-connect.png' %}">
+                            <span>Обратная связь</span>
+                        </a>
+
+                        <!-- Выход -->
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item exit">
+                                <img src="{% static 'elements/teacher-main-page/dropdownc/6 exit.png' %}">
+                                <span>Выход</span>
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Бургер (мобилка) -->
             <div class="hamburger" id="hamburger">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
-        </nav>
-    </header>
+
+        </div>
+    </nav>
+</header>
+
 
     <main>
         <!-- Секция приветствия и информации о пользователе -->
